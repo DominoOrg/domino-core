@@ -1,7 +1,8 @@
 [package]
-name = "domino_lib"
+name = "domino-lib"
 version = "0.1.0"
 edition = "2021"
+authors = ["Nunzio Onorati <nunzioonorati@gmail.com>"]
 
 [lib]
 path = "src/lib.rs"
