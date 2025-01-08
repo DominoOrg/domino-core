@@ -1,5 +1,7 @@
 [package]
 name = "domino-lib"
+description = "Domino library, create sequences and puzzles, solve and validate them in rust"
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
 authors = ["Nunzio Onorati <nunzioonorati@gmail.com>"]
