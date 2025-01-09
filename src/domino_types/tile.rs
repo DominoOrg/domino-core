@@ -12,9 +12,7 @@ impl PartialEq for Tile {
     }
 }
 
-impl Eq for Tile {
-    
-}
+impl Eq for Tile {}
 
 impl TryFrom<(String, String)> for Tile {
     type Error = String;

@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use rand::{thread_rng, Rng};
+use std::collections::HashSet;
 
 use crate::domino_types::puzzle::Puzzle;
 
@@ -16,29 +15,40 @@ fn get_n(sequence: &Vec<(String, String)>) -> usize {
     n
 }
 
-pub fn generate_puzzle(sequence: &Vec<(String, String)>) -> Puzzle {
+pub fn generate_puzzle(sequence: &Vec<(String, String)>, random: bool) -> Puzzle {
     let mut puzzle: Vec<Option<(String, String)>> = sequence
         .clone()
         .into_iter()
         .map(|tile| Some(tile))
         .collect();
     let n = get_n(&sequence);
-    let mut seed = thread_rng();
-    let n_removals = seed.gen_range(1..(sequence.len() - n - 1));
-    let mut removed = HashSet::new();
+    if random {
+        let mut seed = thread_rng();
+        let n_removals = seed.gen_range(1..(sequence.len() - n - 1));
+        let mut removed = HashSet::new();
 
-    for _ in 0..n_removals {
-        let mut index = seed.gen_range(0..sequence.len());
-        while removed.contains(&index) {
-            index = seed.gen_range(0..sequence.len());
+        for _ in 0..n_removals {
+            let mut index = seed.gen_range(0..sequence.len());
+            while removed.contains(&index) {
+                index = seed.gen_range(0..sequence.len());
+            }
+            removed.insert(index);
+            puzzle[index] = None;
         }
-        removed.insert(index);
-        puzzle[index] = None;
     }
+    puzzle[1] = None;
+    puzzle[2] = None;
 
-    puzzle.into_iter().map(|tile| 
-        tile.map(|tile| (i32::from_str_radix(&tile.0, 10).unwrap() as usize, i32::from_str_radix(&tile.1, 10).unwrap() as usize))
-    )
-    .collect::<Vec<Option<(usize, usize)>>>()    
-    .into()
+    puzzle
+        .into_iter()
+        .map(|tile| {
+            tile.map(|tile| {
+                (
+                    i32::from_str_radix(&tile.0, 10).unwrap() as usize,
+                    i32::from_str_radix(&tile.1, 10).unwrap() as usize,
+                )
+            })
+        })
+        .collect::<Vec<Option<(usize, usize)>>>()
+        .into()
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::domino_types::{tile::Tile, puzzle::Puzzle};
+use crate::domino_types::{puzzle::Puzzle, tile::Tile};
 
 // Struct representing a Variable with label, tile, and position.
 #[derive(Debug, Clone)]

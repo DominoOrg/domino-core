@@ -1,7 +1,10 @@
 use std::collections::{HashMap, VecDeque};
 
-use crate::graph_models::graph_types::{aux_graph::AuxiliaryGraph, graph::GraphTrait};
+use crate::graph_models::graph_types::{
+    aux_graph::AuxiliaryGraph, graph::GraphTrait, pog_graph::PogGraph,
+};
 
+#[allow(dead_code)]
 fn comes_before(a_str: &String, b_str: &String) -> i32 {
     let a: (String, String) = AuxiliaryGraph::string_to_edge(a_str).unwrap();
     let b: (String, String) = AuxiliaryGraph::string_to_edge(b_str).unwrap();
@@ -46,18 +49,25 @@ fn extend_coloring(
     true
 }
 
-pub fn lexicographic2_coloring(aux_graph: &AuxiliaryGraph) -> Option<HashMap<String, i32>> {
+#[allow(unused_variables)]
+pub fn lexicographic2_coloring(
+    pog_graph: &PogGraph,
+    aux_graph: &AuxiliaryGraph,
+) -> Option<HashMap<String, i32>> {
+    // Initialize each node with an empty label (-1)
     let mut coloring: HashMap<String, i32> = aux_graph
         .get_nodes()
         .into_iter()
         .map(|el| (el.clone(), -1))
         .collect();
 
-    let mut lex_ord: Vec<String> = aux_graph.nodes();
-    lex_ord
-        .to_owned()
-        .sort_by(|a, b| comes_before(a, b).cmp(&0));
+    // Find a perfect elimination ordering on the main graph for the nodes with unoriented edges
+    let perf_elim_ord: Vec<String> = vec![];
 
+    // Derive from the perfect elimination ordering on the pog graph a lexicographic ordering for the auxiliary one
+    let mut lex_ord: Vec<String> = vec![];
+
+    // Color the nodes following the lexicographic ordering and update the adjacentneighbors with an opposite color
     while coloring.values().any(|&color| color == -1) {
         let el = lex_ord.remove(0);
         coloring

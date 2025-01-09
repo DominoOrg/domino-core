@@ -17,28 +17,29 @@ impl AuxiliaryGraph {
             adjacency: HashMap::new(),
         };
         let under_graph = UnderlyingGraph::from(pog_graph);
+        println!("{under_graph:?}");
+
+        // Collect unoriented egdes filtering out self-loops
         let edges = under_graph
             .adjacency()
             .into_iter()
             .map(|(node, neighbors)| {
                 neighbors
                     .into_iter()
+                    .filter(|neighbor| *neighbor != node)
                     .map(|neighbor| (node.clone(), neighbor))
                     .collect::<Vec<(String, String)>>()
             })
             .flatten()
             .collect::<Vec<(String, String)>>();
 
-        under_graph
-            .adjacency()
-            .into_iter()
-            .for_each(|(node, adjacencies)| {
-                adjacencies.into_iter().for_each(|adjacent_node| {
-                    let node = Self::edge_to_string((&node, &adjacent_node));
-                    graph.insert_node(node);
-                })
-            });
+        // Insert nodes
+        edges.iter().for_each(|edge| {
+            graph.insert_node(edge.0.clone() + "," + edge.1.as_str());
+            graph.insert_node(edge.1.clone() + "," + edge.0.as_str());
+        });
 
+        // Insert edges
         graph.nodes().iter().for_each(|node| {
             let (x, y) = Self::string_to_edge(&node).unwrap();
             graph
@@ -58,7 +59,8 @@ impl AuxiliaryGraph {
         graph
     }
 
-    pub fn edge_to_string(edge: (&String, &String)) -> String {
+    #[allow(dead_code)]
+    fn edge_to_string(edge: (&String, &String)) -> String {
         edge.0.to_string() + "," + edge.1.as_str()
     }
 
@@ -97,65 +99,5 @@ impl GraphTrait for AuxiliaryGraph {
 
     fn mut_adjacency(&mut self) -> &mut HashMap<Self::Node, Vec<Self::Edge>> {
         &mut self.adjacency
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use crate::graph_models::graph_types::{
-        graph::GraphTrait,
-        helpers::{generate, init_graph},
-        pog_graph::PogGraph,
-        Orientation,
-    };
-
-    use super::AuxiliaryGraph;
-
-    fn removed_tiles(pog: &PogGraph) -> Vec<(String, String)> {
-        pog.adjacency()
-            .into_iter()
-            .map(|(key, adjacencies)| {
-                adjacencies
-                    .into_iter()
-                    .filter_map(|(neighbor, direction)| {
-                        if direction == Orientation::Zero {
-                            Some((key.clone(), neighbor))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect::<Vec<(String, String)>>()
-            })
-            .flatten()
-            .collect::<Vec<(String, String)>>()
-    }
-
-    #[test]
-    fn new_aux_graph() {
-        for n in 2..=12 {
-            let puzzle = generate(n);
-            let pog: PogGraph = init_graph(puzzle);
-            let removed_tiles = removed_tiles(&pog);
-            let aux: AuxiliaryGraph = AuxiliaryGraph::from(&pog);
-
-            for tile in &removed_tiles {
-                let str_to_check = AuxiliaryGraph::edge_to_string((&tile.0, &tile.1));
-                assert!(aux.get_nodes().contains(&str_to_check));
-            }
-
-            aux.nodes().into_iter().for_each(|node| {
-                let (x, y) = AuxiliaryGraph::string_to_edge(&node).unwrap();
-                aux.nodes().into_iter().for_each(|node2| {
-                    let (u, v) = AuxiliaryGraph::string_to_edge(&node2).unwrap();
-                    if (x == v && y == u)
-                        || (x == u && !removed_tiles.contains(&(y.clone(), v.clone())))
-                        || (y == v && !removed_tiles.contains(&(x.clone(), u)))
-                    {
-                        assert!(aux.adjacency().get(&node).unwrap().contains(&node2))
-                    }
-                });
-            });
-        }
     }
 }

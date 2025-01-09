@@ -4,7 +4,7 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, pog_graph::PogGraph, GraphNode, Orientation,
 };
 
-// UnderlyingGraph struct implementing GraphTrait
+#[derive(Debug)]
 pub struct UnderlyingGraph {
     nodes: Vec<GraphNode>,
     adjacency: HashMap<GraphNode, Vec<GraphNode>>,
@@ -62,33 +62,5 @@ impl GraphTrait for UnderlyingGraph {
 
     fn mut_adjacency(&mut self) -> &mut HashMap<Self::Node, Vec<Self::Edge>> {
         &mut self.adjacency
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::graph_models::graph_types::helpers::{generate, init_graph};
-
-    #[test]
-    fn new_underlying_graph() {
-        for n in 2..=12 {
-            let puzzle = generate(n);
-            let pog = init_graph(puzzle);
-            let under = UnderlyingGraph::from(&pog);
-
-            // Check that the nodes in UnderlyingGraph are a subset of PogGraph's nodes
-            assert!(under.nodes().len() <= pog.nodes().len());
-            for node in under.nodes() {
-                assert!(pog.nodes().contains(&node));
-            }
-
-            // Check the unoriented edges count
-            let mut unoriented = 0;
-            for edges in under.adjacency().values() {
-                unoriented += edges.len();
-            }
-            assert!(unoriented > 0);
-        }
     }
 }

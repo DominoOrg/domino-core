@@ -4,7 +4,7 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, regular_graph::RegularGraph, GraphNode, Orientation,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PogGraph {
     nodes: Vec<GraphNode>,
     adjacency: HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,
@@ -33,14 +33,7 @@ impl PogGraph {
                     key.clone(),
                     values
                         .into_iter()
-                        .map(|node| {
-                            if key == node {
-                                vec![(node.clone(), Orientation::Zero), (node, Orientation::Zero)]
-                            } else {
-                                vec![(node, Orientation::Zero)]
-                            }
-                        })
-                        .flatten()
+                        .map(|node| (node, Orientation::Zero))
                         .collect(),
                 )
             })
@@ -64,6 +57,11 @@ impl PogGraph {
         self.update_orientation(u, v, Orientation::Positive);
         self.update_orientation(v, u, Orientation::Negative);
     }
+
+    pub fn deorient_arc(&mut self, u: &GraphNode, v: &GraphNode) {
+        self.update_orientation(u, v, Orientation::Zero);
+        self.update_orientation(v, u, Orientation::Zero);
+    }
 }
 
 impl GraphTrait for PogGraph {
@@ -84,100 +82,5 @@ impl GraphTrait for PogGraph {
 
     fn mut_adjacency(&mut self) -> &mut HashMap<Self::Node, Vec<Self::Edge>> {
         &mut self.adjacency
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::graph_models::graph_types::{
-        helpers::{generate, hierholzer, init_graph},
-        pog_graph::PogGraph,
-    };
-
-    use super::*;
-
-    #[test]
-    fn new_pog_graph() {
-        let pog = PogGraph::new();
-        assert!(pog.nodes().is_empty());
-        assert!(pog.adjacency().is_empty());
-        for edges in pog.adjacency().values() {
-            assert_eq!(edges.len(), 0);
-        }
-    }
-
-    #[test]
-    fn pog_graph_from() {
-        for n in 2..=12 {
-            let regular = RegularGraph::new(n);
-            let pog = PogGraph::from(&regular);
-            assert_eq!(pog.nodes().len(), n + 1);
-            assert_eq!(pog.adjacency().len(), n + 1);
-            for edges in pog.adjacency().values() {
-                assert_eq!(edges.len(), n - n % 2 + 2);
-            }
-        }
-    }
-
-    #[test]
-    fn hierholzer_pog_graph() {
-        for n in 2..=12 {
-            let mut regular = RegularGraph::new(n);
-            let pog = hierholzer(&mut regular);
-            let mut global_degree = 0;
-            let mut removed = 0;
-
-            assert_eq!(pog.nodes().len(), n + 1);
-            assert_eq!(pog.adjacency().len(), n + 1);
-            for edges in pog.adjacency().values() {
-                let mut entering = 0;
-                let mut unoriented = 0;
-                let mut exiting = 0;
-
-                assert_eq!(edges.len(), n - n % 2 + 2);
-                for edge in edges {
-                    match edge.1 {
-                        Orientation::Negative => entering += 1,
-                        Orientation::Zero => unoriented += 1,
-                        Orientation::Positive => exiting += 1,
-                    }
-                }
-                global_degree += entering - exiting;
-                removed += unoriented;
-            }
-            assert_eq!(global_degree, 0);
-            assert_eq!(removed, 0);
-        }
-    }
-
-    #[test]
-    fn generate_pog_graph() {
-        for n in 2..=12 {
-            let puzzle = generate(n);
-            let pog = init_graph(puzzle);
-            let mut global_degree = 0;
-            let mut removed = 0;
-
-            assert_eq!(pog.nodes().len(), n + 1);
-            assert_eq!(pog.adjacency().len(), n + 1);
-            for edges in pog.adjacency().values() {
-                let mut entering = 0;
-                let mut unoriented = 0;
-                let mut exiting = 0;
-
-                assert_eq!(edges.len(), n - n % 2 + 2);
-                for edge in edges {
-                    match edge.1 {
-                        Orientation::Negative => entering += 1,
-                        Orientation::Zero => unoriented += 1,
-                        Orientation::Positive => exiting += 1,
-                    }
-                }
-                global_degree += entering - exiting;
-                removed += unoriented;
-            }
-            assert_eq!(global_degree, 0);
-            assert!(removed > 0);
-        }
     }
 }

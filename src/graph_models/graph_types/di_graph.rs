@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::graph_models::graph_types::{graph::GraphTrait, pog_graph::PogGraph, Orientation};
 
+#[derive(Debug)]
 pub struct DirectedGraph {
     nodes: Vec<String>,
     adjacency: HashMap<String, Vec<(String, Orientation)>>,

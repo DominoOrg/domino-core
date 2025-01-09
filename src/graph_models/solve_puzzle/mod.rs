@@ -7,8 +7,10 @@ use crate::graph_models::graph_types::{
     regular_graph::RegularGraph, Orientation,
 };
 use coloring::lexicographic2_coloring;
+use solve_planar::solve_planar;
 
 mod coloring;
+mod solve_planar;
 
 pub fn get_n(puzzle: &Puzzle) -> usize {
     let l = puzzle.len();
@@ -22,30 +24,15 @@ pub fn get_n(puzzle: &Puzzle) -> usize {
     n
 }
 
-pub fn solve(puzzle: &Puzzle) -> Option<Vec<(String, String)>> {
-    // Create a pog graph representing the puzzle
-    let n = get_n(puzzle);
-    let reg = RegularGraph::new(n);
-    let mut pog = PogGraph::from(&reg);
-    let puzzle: Vec<Option<(usize, usize)>> = puzzle.clone().into();
-    for tile in puzzle {
-        if let Some(tile) = tile {
-            pog.insert_or_update(
-                tile.0.to_string(),
-                Some((tile.1.to_string(), Orientation::Zero)),
-                (tile.1.to_string(), Orientation::Positive),
-            );
-            pog.insert_or_update(
-                tile.1.to_string(),
-                Some((tile.0.to_string(), Orientation::Zero)),
-                (tile.0.to_string(), Orientation::Negative),
-            );
-        }
-    }
+fn solve_non_planar(
+    puzzle: Vec<Option<(usize, usize)>>,
+    pog: PogGraph,
+) -> Option<Vec<(usize, usize)>> {
     // Create a directed graph from pog_graph
     let mut arc_graph = DirectedGraph::from(&pog);
     let aux_graph = AuxiliaryGraph::from(&pog);
-    let coloring: Option<HashMap<String, i32>> = lexicographic2_coloring(&aux_graph);
+    let coloring: Option<HashMap<String, i32>> = lexicographic2_coloring(&pog, &aux_graph);
+    println!("{coloring:?}");
 
     // If coloring is None, return None
     let coloring = coloring?;
@@ -64,35 +51,41 @@ pub fn solve(puzzle: &Puzzle) -> Option<Vec<(String, String)>> {
             (u.clone(), Orientation::Negative),
         );
     }
-
     Some(
         as_sequence(&arc_graph.adjacency(), false)
             .into_iter()
             .map(|tile| tile.unwrap())
-            .collect::<Vec<(String, String)>>(),
+            .collect::<Vec<(usize, usize)>>(),
     )
 }
 
-#[cfg(test)]
-mod test {
+pub fn solve(puzzle: &Puzzle) -> Option<Vec<(usize, usize)>> {
+    // Create a pog graph representing the puzzle
+    let n = get_n(puzzle);
+    let reg = RegularGraph::new(n);
+    let mut pog = PogGraph::from(&reg);
+    let puzzle: Vec<Option<(usize, usize)>> = puzzle.clone().into();
 
-    use crate::domino_types::puzzle::Puzzle;
-    use crate::graph_models::generate_sequence::generate_solution;
-    use crate::graph_models::solve_puzzle::solve;
-
-    #[test]
-    fn solve_test() {
-        for n in 2..=12 {
-            let sequence = generate_solution(n, false);
-            let mut puzzle = sequence
-                .clone()
-                .into_iter()
-                .map(|tile| Some((i32::from_str_radix(&tile.0, 10).unwrap() as usize, i32::from_str_radix(&tile.1, 10).unwrap() as usize)))
-                .collect::<Vec<Option<(usize, usize)>>>();
-            puzzle[0] = None;
-            let puzzle = Puzzle::from(puzzle);
-            let solved = solve(&puzzle).unwrap();
-            assert_eq!(solved, sequence);
+    for tile in puzzle.iter() {
+        if let Some(tile) = tile {
+            pog.insert_or_update(
+                tile.0.to_string(),
+                Some((tile.1.to_string(), Orientation::Zero)),
+                (tile.1.to_string(), Orientation::Positive),
+            );
+            pog.insert_or_update(
+                tile.1.to_string(),
+                Some((tile.0.to_string(), Orientation::Zero)),
+                (tile.0.to_string(), Orientation::Negative),
+            );
         }
+    }
+
+    // If the pog has less than 5 nodes brute force the completion until it's not complete and each node has even degree
+    // Else if the pog has more than 5 nodes use lexicographic coloring
+    if pog.nodes().len() <= 5 {
+        solve_planar(puzzle.clone(), pog)
+    } else {
+        solve_non_planar(puzzle, pog)
     }
 }

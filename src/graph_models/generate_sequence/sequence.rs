@@ -47,7 +47,7 @@ fn dfs(
 pub fn as_sequence(
     adj: &HashMap<String, Vec<(String, Orientation)>>,
     random: bool,
-) -> Vec<Option<(String, String)>> {
+) -> Vec<Option<(usize, usize)>> {
     let mut path = Vec::new();
     let mut adj_list = adj.clone();
 
@@ -64,7 +64,10 @@ pub fn as_sequence(
         if let Some(neighbors) = adj.get(node1) {
             if let Some((_, orientation)) = neighbors.iter().find(|(adj, _)| adj == node2) {
                 if *orientation == Orientation::Positive || *orientation == Orientation::Negative {
-                    mapped_path.push(Some((node1.clone(), node2.clone())));
+                    mapped_path.push(Some((
+                        i32::from_str_radix(&node1.clone(), 10).unwrap() as usize,
+                        i32::from_str_radix(&node2.clone(), 10).unwrap() as usize,
+                    )));
                 } else {
                     mapped_path.push(None);
                 }

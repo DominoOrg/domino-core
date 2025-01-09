@@ -1,6 +1,11 @@
+use crate::domino_types::{
+    puzzle::{FitPuzzleChecker, Puzzle},
+    solution::SolutionBuilder,
+    tile::Tile,
+    tileset::Tileset,
+};
 use crate::model_execution_lib::execute;
 use model::compute_model;
-use crate::domino_types::{puzzle::{FitPuzzleChecker, Puzzle}, solution::SolutionBuilder, tile::Tile, tileset::Tileset};
 
 mod model;
 
@@ -33,7 +38,7 @@ pub fn validate(puzzle: &Puzzle, n: usize) -> Result<(), String> {
     let mut solutions: Vec<Puzzle> = Vec::new();
     let free_tiles = free_tiles(puzzle, n);
     let free_positions = free_positions(puzzle);
-    let checker = FitPuzzleChecker{};
+    let checker = FitPuzzleChecker {};
     for tile in free_tiles {
         for position in &free_positions {
             if checker.check(puzzle, *position, tile) {
@@ -42,7 +47,7 @@ pub fn validate(puzzle: &Puzzle, n: usize) -> Result<(), String> {
                 let model = compute_model(&new_puzzle, n);
                 let result = execute(model);
                 if let Ok(variables_map) = result {
-                    let solution_builder = SolutionBuilder{};
+                    let solution_builder = SolutionBuilder {};
                     let solution = solution_builder.build(&new_puzzle, variables_map, n);
                     solutions.push(solution);
                 } else {
@@ -57,9 +62,10 @@ pub fn validate(puzzle: &Puzzle, n: usize) -> Result<(), String> {
     for solution in solutions.iter() {
         for solution2 in solutions.iter() {
             if solution != solution2 {
-                let error_message = format!("Found multiple solutions to the same puzzle, the puzzle is not valid");
+                let error_message =
+                    format!("Found multiple solutions to the same puzzle, the puzzle is not valid");
                 return Err(error_message);
-            }    
+            }
         }
     }
 
@@ -68,8 +74,8 @@ pub fn validate(puzzle: &Puzzle, n: usize) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lp_models::generate_sequence_model::generate_sequence;
     use crate::domino_types::puzzle::Puzzle;
+    use crate::lp_models::generate_sequence_model::generate_sequence;
     use crate::lp_models::validate_puzzle_models::validate;
 
     #[test]
