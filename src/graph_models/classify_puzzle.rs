@@ -1,4 +1,4 @@
-fn get_n(puzzle: &Vec<Option<(String, String)>>) -> usize {
+fn get_n(puzzle: &Vec<Option<(usize, usize)>>) -> usize {
     let l = puzzle.len();
     let n_p = (-3.0 + (1.0 + 8.0 * (l as f64)).sqrt()) / 2.0;
     let n_d = (-2.0 + (8.0 * (l as f64)).sqrt()) / 2.0;
@@ -14,7 +14,7 @@ fn is_overlap(nplet_bounds1: &(usize, usize), nplet_bounds2: &(usize, usize)) ->
     nplet_bounds1.0 <= nplet_bounds2.1 && nplet_bounds2.0 <= nplet_bounds1.1
 }
 
-pub fn classify_puzzle(puzzle: &Vec<Option<(String, String)>>) -> usize {
+pub fn classify_puzzle(puzzle: &Vec<Option<(usize, usize)>>) -> usize {
     let n = get_n(puzzle);
     let mut indicators = vec![false, false, false];
     let nplet_size = n + 1;
@@ -34,7 +34,7 @@ pub fn classify_puzzle(puzzle: &Vec<Option<(String, String)>>) -> usize {
                 && nplet[nplet_size - 1].1.is_some()
         })
         .map(|nplet| nplet.to_vec())
-        .collect::<Vec<Vec<(usize, &Option<(String, String)>)>>>();
+        .collect::<Vec<Vec<(usize, &Option<(usize, usize)>)>>>();
     let nplets_bounds = nplets
         .clone()
         .iter()

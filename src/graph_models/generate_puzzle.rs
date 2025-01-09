@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 use crate::domino_types::puzzle::Puzzle;
 
-fn get_n(sequence: &Vec<(String, String)>) -> usize {
+fn get_n(sequence: &Vec<(usize, usize)>) -> usize {
     let l = sequence.len();
     let n_p = (-3.0 + (1.0 + 8.0 * (l as f64)).sqrt()) / 2.0;
     let n_d = (-2.0 + (8.0 * (l as f64)).sqrt()) / 2.0;
@@ -15,8 +15,8 @@ fn get_n(sequence: &Vec<(String, String)>) -> usize {
     n
 }
 
-pub fn generate_puzzle(sequence: &Vec<(String, String)>, random: bool) -> Puzzle {
-    let mut puzzle: Vec<Option<(String, String)>> = sequence
+pub fn generate_puzzle(sequence: &Vec<(usize, usize)>, random: bool) -> Puzzle {
+    let mut puzzle: Vec<Option<(usize, usize)>> = sequence
         .clone()
         .into_iter()
         .map(|tile| Some(tile))
@@ -39,16 +39,5 @@ pub fn generate_puzzle(sequence: &Vec<(String, String)>, random: bool) -> Puzzle
     puzzle[1] = None;
     puzzle[2] = None;
 
-    puzzle
-        .into_iter()
-        .map(|tile| {
-            tile.map(|tile| {
-                (
-                    i32::from_str_radix(&tile.0, 10).unwrap() as usize,
-                    i32::from_str_radix(&tile.1, 10).unwrap() as usize,
-                )
-            })
-        })
-        .collect::<Vec<Option<(usize, usize)>>>()
-        .into()
+    puzzle.into()
 }

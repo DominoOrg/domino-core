@@ -10,7 +10,7 @@ mod tests {
             let mut puzzle = sequence
                 .into_iter()
                 .map(|tile| Some(tile))
-                .collect::<Vec<Option<(String, String)>>>();
+                .collect::<Vec<Option<(usize, usize)>>>();
             puzzle[0] = None;
             let difficulty = classify_puzzle(&puzzle);
             assert_eq!(difficulty, 1);
@@ -24,7 +24,7 @@ mod tests {
             let mut puzzle = sequence
                 .into_iter()
                 .map(|tile| Some(tile))
-                .collect::<Vec<Option<(String, String)>>>();
+                .collect::<Vec<Option<(usize, usize)>>>();
             for i in 0..n {
                 puzzle[i] = None;
             }
@@ -40,7 +40,7 @@ mod tests {
             let mut puzzle = sequence
                 .into_iter()
                 .map(|tile| Some(tile))
-                .collect::<Vec<Option<(String, String)>>>();
+                .collect::<Vec<Option<(usize, usize)>>>();
             for i in 0..2 {
                 for j in 0..n {
                     puzzle[(n + 1) * i + j] = None;

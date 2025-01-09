@@ -13,10 +13,7 @@ mod test {
                 .clone()
                 .into_iter()
                 .map(|tile| {
-                    Some((
-                        i32::from_str_radix(&tile.0, 10).unwrap() as usize,
-                        i32::from_str_radix(&tile.1, 10).unwrap() as usize,
-                    ))
+                    Some(tile)
                 })
                 .collect::<Vec<Option<(usize, usize)>>>();
             puzzle[0] = None;
