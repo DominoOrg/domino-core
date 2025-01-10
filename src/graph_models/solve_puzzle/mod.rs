@@ -15,8 +15,8 @@ mod hierholzer;
 
 pub fn get_n(puzzle: &Puzzle) -> usize {
     let l = puzzle.len();
-    let n_p = (-3.0 + (1.0 + 8.0 * (l as f64)).sqrt()) / 2.0;
-    let n_d = (-2.0 + (8.0 * (l as f64)).sqrt()) / 2.0;
+    let n_p = (-1.0 + (1.0 + 8.0 * (l as f64)).sqrt()) / 2.0;
+    let n_d = (1.0 + 2.0 * (l as f64)).sqrt();
     let n = if (n_p - n_p.floor()).abs() == 0.0 {
         n_p.floor() as usize
     } else {

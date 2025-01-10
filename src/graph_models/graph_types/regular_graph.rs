@@ -28,7 +28,7 @@ impl RegularGraph {
             graph.adjacency = graph
                 .nodes()
                 .into_iter()
-                .map(|node| (node, graph.nodes()))
+                .map(|node| (node, graph.nodes().into_iter().filter(|el| node != *el).collect()))
                 .collect()
         } else {
             // Odd N: connect nodes based on specific conditions
@@ -42,9 +42,12 @@ impl RegularGraph {
                         .into_iter()
                         .filter(|node2| {
                             let j = *node2;
-                            return i == j
-                                || (j < i && j != ((i + ((n + 1) / 2)) % (n + 1)))
-                                || (i < j && i != ((j + ((n + 1) / 2)) % (n + 1)));
+                            return node != *node2
+                                && (
+                                    i == j
+                                    || (j < i && j != ((i + ((n + 1) / 2)) % (n + 1)))
+                                    || (i < j && i != ((j + ((n + 1) / 2)) % (n + 1)))
+                                );
                         })
                         .collect();
                     (node, neighbors)
