@@ -1,9 +1,9 @@
 use crate::graph_models::graph_types::{graph::GraphTrait, pog_graph::PogGraph, under_graph::UnderlyingGraph, GraphNode, Orientation};
 use super::hierholzer::hierholzer;
 
-pub fn solve_planar(puzzle: Vec<Option<(usize, usize)>>, mut pog: PogGraph) -> Option<Vec<(usize, usize)>> {
+pub fn solve_planar(puzzle: Vec<Option<(usize, usize)>>, pog: PogGraph) -> Option<Vec<(usize, usize)>> {
     let mut solved = false;
-    solve_planar_r(&mut pog, None, &mut solved);
+    solve_planar_r(&mut pog.clone(), None, &mut solved);
     if solved {
         return Some(flatten_oriented_graph(&puzzle, pog));
     }
@@ -14,24 +14,40 @@ fn flatten_oriented_graph(puzzle: &Vec<Option<(usize, usize)>>, pog: PogGraph) -
     println!("pog: {pog:?}");
     let mut fixed_puzzle = puzzle.clone();
     println!("fixed_puzzle: {fixed_puzzle:?}");
-    while puzzle.into_iter().any(|el| el.is_none()) {
+    while fixed_puzzle.clone().into_iter().any(|el| el.is_none()) {
         println!("new iteration to fix the puzzle");
         // Count consecutive missing tiles
-        let len = 0;
-        let mut last_none: isize = -1;
+        let mut len = 0;
+        let mut start_node = None;
+        let mut last_none = None;
         for i in 0..puzzle.len() {
-            if puzzle[i].is_none() {
-                last_none = i as isize;
-            } else if last_none != -1 {
+            if puzzle[i].is_some() && puzzle[(i+1)%puzzle.len()].is_none() {
+                start_node = Some(puzzle[i].unwrap().1);
+                last_none = None;
+                len = 0;
+            } else if puzzle[i].is_none() {
+                last_none = Some(i);
+                len += 1;
+            }
+            if puzzle[i].is_none() && puzzle[(i+1)%puzzle.len()].is_some() {
                 break;
             }
         }
+        println!("len: {len}");
+        println!("last_none: {last_none:?}");
         // Replace the consecutive none with the solution
-        if len > 0 {
+        if len > 0 && start_node.is_some() {
             let under_graph = UnderlyingGraph::from(&pog);
-            let solution: Vec<(usize, usize)> = hierholzer(&under_graph, len).unwrap();
-            for i in (last_none-(len as isize))..last_none {
-                fixed_puzzle[i as usize] = Some(solution[(i-last_none) as usize]);
+            println!("under_graph: {under_graph:?}");
+            let solution: Vec<(usize, usize)> = hierholzer(&under_graph, start_node.unwrap(), len).unwrap();
+            println!("solution: {solution:?}");
+            let start_index = if last_none.unwrap() >= len {
+                last_none.unwrap() - len
+            } else {
+                (2 * len - last_none.unwrap())%puzzle.len() 
+            };
+            for i in start_index..last_none.unwrap() {
+                fixed_puzzle[i as usize] = Some(solution[(i-last_none.unwrap()) as usize]);
             }
         }
 
@@ -70,6 +86,7 @@ fn solve_planar_r(pog: &mut PogGraph, last: Option<(GraphNode, (GraphNode, Orien
     } else {
         if is_eulerian(&pog) {
             *solved = true;
+            println!("Solved");
         } else {
             if let Some(last) = last {
                 pog.deorient_arc(&last.0, &last.1.0);

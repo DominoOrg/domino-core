@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub trait GraphTrait {
+pub trait GraphTrait: std::fmt::Debug + Clone {
     type Node: std::fmt::Debug + std::cmp::Eq + std::hash::Hash + Clone; // `Node` type, must be hashable for HashSet and HashMap
     type Edge: std::cmp::Eq + Clone; // `Edge` type
 

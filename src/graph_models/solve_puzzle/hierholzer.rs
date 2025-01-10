@@ -1,16 +1,11 @@
 use crate::graph_models::graph_types::graph::GraphTrait;
 
 
-pub fn hierholzer<T: GraphTrait + Clone>(graph: &T, len: usize) -> Option<Vec<(T::Node, T::Node)>> {
+pub fn hierholzer<T: GraphTrait>(graph: &T, start_node: T::Node, len: usize) -> Option<Vec<(T::Node, T::Node)>> {
     let mut graph = graph.clone(); // Clone the graph for manipulation
+    println!("graph: {graph:?}");
     let mut path: Vec<(<T as GraphTrait>::Node, <T as GraphTrait>::Node)> = Vec::new();
     let mut stack = Vec::new();
-
-    // Find a starting node. If there are no nodes, return None
-    let start_node = match graph.nodes().first() {
-        Some(node) => node.clone(),
-        None => return None,
-    };
 
     // Push the start node onto the stack
     stack.push(start_node.clone());

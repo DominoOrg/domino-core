@@ -4,7 +4,7 @@ use crate::graph_models::graph_types::{graph::GraphTrait, pog_graph::PogGraph, O
 
 use super::GraphNode;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DirectedGraph {
     nodes: Vec<GraphNode>,
     adjacency: HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,

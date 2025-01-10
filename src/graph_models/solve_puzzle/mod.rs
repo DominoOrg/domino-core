@@ -29,6 +29,7 @@ fn solve_non_planar(
     puzzle: Vec<Option<(usize, usize)>>,
     pog: PogGraph,
 ) -> Option<Vec<(usize, usize)>> {
+    let _ = puzzle;
     // Create a directed graph from pog_graph
     let mut arc_graph = DirectedGraph::from(&pog);
     let aux_graph = AuxiliaryGraph::from(&pog);

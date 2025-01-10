@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::graph_models::graph_types::{graph::GraphTrait, GraphNode};
 
 // Define the RegularGraph struct
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RegularGraph {
     nodes: Vec<GraphNode>,                         // Set of nodes in the graph
     adjacency: HashMap<GraphNode, Vec<GraphNode>>, // Adjacency list

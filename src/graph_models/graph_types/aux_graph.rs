@@ -4,7 +4,7 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, pog_graph::PogGraph, under_graph::UnderlyingGraph, GraphNode,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AuxiliaryGraph {
     nodes: Vec<String>,
     adjacency: HashMap<String, Vec<String>>,
