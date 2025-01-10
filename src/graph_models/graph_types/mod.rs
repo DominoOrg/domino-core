@@ -3,7 +3,6 @@ use std::{fmt::Debug, ops::Neg};
 pub mod aux_graph;
 pub mod di_graph;
 pub mod graph;
-pub(crate) mod helpers;
 pub mod pog_graph;
 pub mod regular_graph;
 pub mod under_graph;
@@ -11,7 +10,7 @@ pub mod under_graph;
 // Assuming GraphNode is a type alias for the graph's node type
 pub type GraphNode = usize;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Orientation {
     Positive = 1,
     Zero = 0,

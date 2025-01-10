@@ -4,10 +4,44 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, pog_graph::PogGraph, under_graph::UnderlyingGraph, GraphNode,
 };
 
+use super::{graph::GraphEdge, Orientation};
+
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+struct AuxiliaryGraphEdge {
+    from: String,
+    to: String,
+}
+
+impl From<(String, String)> for AuxiliaryGraphEdge {
+    fn from((from, to): (String, String)) -> Self {
+        Self { from, to }
+    }
+}
+
+impl GraphEdge for AuxiliaryGraphEdge {
+    type FromNode = String;
+
+    type ToNode = String;
+
+    type Orientation = Orientation;
+
+    fn from_node(&self) -> Self::FromNode {
+        self.from.clone()
+    }
+
+    fn to_node(&self) -> Self::ToNode {
+        self.to.clone()
+    }
+
+    fn orientation(&self) -> super::Orientation {
+        Orientation::Zero
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AuxiliaryGraph {
     nodes: Vec<String>,
-    adjacency: HashMap<String, Vec<String>>,
+    adjacency: HashMap<String, Vec<AuxiliaryGraphEdge>>,
 }
 
 impl AuxiliaryGraph {
@@ -26,17 +60,21 @@ impl AuxiliaryGraph {
             .map(|(node, neighbors)| {
                 neighbors
                     .into_iter()
-                    .filter(|neighbor| *neighbor != node)
-                    .map(|neighbor| (node.clone(), neighbor))
-                    .collect::<Vec<(GraphNode, GraphNode)>>()
+                    .filter(|neighbor| neighbor.to_node() != node)
+                    .map(|neighbor| {
+                        let mut new_node = node.to_string();
+                        new_node.push_str(&neighbor.to_node().to_string());
+                        (node.to_string(),new_node).into()
+                    })
+                    .collect::<Vec<AuxiliaryGraphEdge>>()
             })
             .flatten()
-            .collect::<Vec<(GraphNode, GraphNode)>>();
+            .collect::<Vec<AuxiliaryGraphEdge>>();
 
         // Insert nodes
         edges.iter().for_each(|edge| {
-            graph.insert_node(edge.0.to_string() + "," + &edge.1.to_string());
-            graph.insert_node(edge.1.to_string() + "," + &edge.0.to_string());
+            graph.insert_node(edge.from_node().to_string() + "," + &edge.to_node().to_string());
+            graph.insert_node(edge.to_node().to_string() + "," + &edge.from_node().to_string());
         });
 
         // Insert edges
@@ -49,19 +87,17 @@ impl AuxiliaryGraph {
                     let (u, v) = Self::string_to_edge(node2).unwrap();
                     return node != *node2
                         && ((x == v && y == u)
-                            || (x == u && !edges.contains(&(y.clone(), v.clone())))
-                            || (y == v && !edges.contains(&(x.clone(), u))));
+                            || (x == u && !edges.contains(&(y.clone().to_string(), v.clone().to_string()).into()))
+                            || (y == v && !edges.contains(&(x.clone().to_string(), u.to_string()).into())));
                 })
                 .for_each(|node2| {
-                    graph.insert_or_update(node.clone(), None, node2.clone());
+                    graph.insert_or_update(
+                        node.clone(),
+                        None,
+                        AuxiliaryGraphEdge::from((node.clone(), node2.clone())));
                 });
         });
         graph
-    }
-
-    #[allow(dead_code)]
-    fn edge_to_string(edge: (&String, &String)) -> String {
-        edge.0.to_string() + "," + edge.1.as_str()
     }
 
     pub fn string_to_edge(str: &String) -> Option<(GraphNode, GraphNode)> {
@@ -88,7 +124,7 @@ impl AuxiliaryGraph {
 
 impl GraphTrait for AuxiliaryGraph {
     type Node = String;
-    type Edge = String;
+    type Edge = AuxiliaryGraphEdge;
 
     fn nodes(&self) -> Vec<Self::Node> {
         self.nodes.clone()

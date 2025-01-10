@@ -25,15 +25,20 @@ fn flatten_oriented_graph(puzzle: &Vec<Option<(usize, usize)>>, pog: PogGraph) -
                 start_node = Some(puzzle[i].unwrap().1);
                 last_none = None;
                 len = 0;
-            } else if puzzle[i].is_none() {
+            }
+        }
+
+        for i in 0..puzzle.len() {
+            if puzzle[i].is_none() {
                 last_none = Some(i);
                 len += 1;
-            }
-            if puzzle[i].is_none() && puzzle[(i+1)%puzzle.len()].is_some() {
-                break;
+                if puzzle[(i+1)%puzzle.len()].is_some() {
+                    break;
+                }
             }
         }
         println!("len: {len}");
+        println!("start_node: {start_node:?}");
         println!("last_none: {last_none:?}");
         // Replace the consecutive none with the solution
         if len > 0 && start_node.is_some() {

@@ -1,8 +1,20 @@
 use std::collections::HashMap;
 
+use super::Orientation;
+
+pub trait GraphEdge: std::fmt::Debug + Clone + Eq + std::hash::Hash {
+    type FromNode: std::fmt::Debug + std::cmp::Eq + std::hash::Hash + Clone;
+    type ToNode: std::fmt::Debug + std::cmp::Eq + std::hash::Hash + Clone;
+    type Orientation;
+
+    fn from_node(&self) -> Self::FromNode;
+    fn to_node(&self) -> Self::ToNode;
+    fn orientation(&self) -> Orientation;
+}
+
 pub trait GraphTrait: std::fmt::Debug + Clone {
     type Node: std::fmt::Debug + std::cmp::Eq + std::hash::Hash + Clone; // `Node` type, must be hashable for HashSet and HashMap
-    type Edge: std::cmp::Eq + Clone; // `Edge` type
+    type Edge: GraphEdge; // `Edge` type
 
     fn nodes(&self) -> Vec<Self::Node>;
     fn adjacency(&self) -> HashMap<Self::Node, Vec<Self::Edge>>;

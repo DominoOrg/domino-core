@@ -14,17 +14,16 @@ pub fn hierholzer<T: GraphTrait>(graph: &T, start_node: T::Node, len: usize) -> 
         let v = stack.last().unwrap().clone();
         println!("v: {v:?}");
         if let Some(edges) = graph.adjacency().get(&v) {
+            println!("edges: {edges:?}");
             if !edges.is_empty() {
                 // Get the next node from the first edge of v
                 let next_edge = edges[0].clone();
-                let next_node = match find_next_node(&graph, &v, &next_edge) {
-                    Some(node) => node,
-                    None => return None, // This shouldn't happen if the graph is Eulerian
-        };
-
+                println!("next_edge: {next_edge:?}");
+                let next_node = next_edge.clone();
+                println!("next_node: {next_node:?}");
                 // Remove the edge from the graph
                 graph.remove_edge(&v, &next_edge);
-
+                println!("graph: {graph:?}");
                 // Add the next node to the stack to explore further
                 stack.push(next_node.clone());
             } else {
@@ -50,15 +49,4 @@ pub fn hierholzer<T: GraphTrait>(graph: &T, start_node: T::Node, len: usize) -> 
     } else {
         None
     }
-}
-
-// Helper function to find the next node given an edge
-fn find_next_node<T: GraphTrait>(graph: &T, from: &T::Node, edge: &T::Edge) -> Option<T::Node> {
-    let adjacency = graph.adjacency();
-    for (node, edges) in adjacency.iter() {
-        if node != from && edges.contains(edge) {
-            return Some(node.clone());
-        }
-    }
-    None
 }

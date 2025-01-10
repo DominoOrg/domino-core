@@ -2,11 +2,48 @@ use std::collections::HashMap;
 
 use crate::graph_models::graph_types::{graph::GraphTrait, GraphNode};
 
+use super::{graph::GraphEdge, Orientation};
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct RegularGraphEdge {
+    from: GraphNode,
+    to: GraphNode,
+    orientation: Orientation,
+}
+
+impl GraphEdge for RegularGraphEdge {
+    type FromNode = GraphNode;
+    type ToNode = GraphNode;
+    type Orientation = Orientation;
+    
+    fn from_node(&self) -> Self::FromNode {
+        self.from
+    }
+    
+    fn to_node(&self) -> Self::ToNode {
+        self.to
+    }
+    
+    fn orientation(&self) -> Orientation {
+        self.orientation
+    }
+}
+
+impl From<(GraphNode, GraphNode)> for RegularGraphEdge {
+    fn from(node: (GraphNode, GraphNode)) -> Self {
+        RegularGraphEdge {
+            from: node.0,
+            to: node.1,
+            orientation: Orientation::Zero,
+        }
+    }
+}
+
 // Define the RegularGraph struct
 #[derive(Debug, Clone)]
 pub struct RegularGraph {
     nodes: Vec<GraphNode>,                         // Set of nodes in the graph
-    adjacency: HashMap<GraphNode, Vec<GraphNode>>, // Adjacency list
+    adjacency: HashMap<GraphNode, Vec<RegularGraphEdge>>, // Adjacency list
 }
 
 impl RegularGraph {
@@ -28,7 +65,16 @@ impl RegularGraph {
             graph.adjacency = graph
                 .nodes()
                 .into_iter()
-                .map(|node| (node, graph.nodes().into_iter().filter(|el| node != *el).collect()))
+                .map(|node| 
+                    (
+                        node,
+                        graph.nodes()
+                        .into_iter()
+                        .filter(|el| node != *el)
+                        .map(|node2| (node, node2).into())
+                        .collect()
+                    )
+                )
                 .collect()
         } else {
             // Odd N: connect nodes based on specific conditions
@@ -49,7 +95,8 @@ impl RegularGraph {
                                     || (i < j && i != ((j + ((n + 1) / 2)) % (n + 1)))
                                 );
                         })
-                        .collect();
+                        .map(|node2| (node, node2).into())
+                        .collect::<Vec<RegularGraphEdge>>();
                     (node, neighbors)
                 })
                 .collect();
@@ -62,7 +109,7 @@ impl RegularGraph {
 // Implement GraphTrait for RegularGraph
 impl GraphTrait for RegularGraph {
     type Node = GraphNode;
-    type Edge = GraphNode;
+    type Edge = RegularGraphEdge;
 
     fn nodes(&self) -> Vec<Self::Node> {
         self.nodes.clone()

@@ -4,10 +4,48 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, regular_graph::RegularGraph, GraphNode, Orientation,
 };
 
+use super::graph::GraphEdge;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct PogGraphEdge {
+    from: GraphNode,
+    to: GraphNode,
+    orientation: Orientation
+}
+
+impl GraphEdge for PogGraphEdge {
+    type FromNode = GraphNode;
+    type ToNode = GraphNode;
+    type Orientation = Orientation;
+    
+    fn from_node(&self) -> Self::FromNode {
+        self.from
+    }
+    
+    fn to_node(&self) -> Self::ToNode {
+        self.to
+    }
+    
+    fn orientation(&self) -> Orientation {
+        self.orientation
+    }
+    
+}
+
+impl From<(GraphNode, Orientation)> for PogGraphEdge {
+    fn from((from, orientation): (GraphNode, Orientation)) -> Self {
+        PogGraphEdge {
+            from,
+            to: GraphNode::default(),
+            orientation
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct PogGraph {
     nodes: Vec<GraphNode>,
-    adjacency: HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,
+    adjacency: HashMap<GraphNode, Vec<PogGraphEdge>>,
 }
 
 impl PogGraph {
@@ -33,11 +71,11 @@ impl PogGraph {
                     key.clone(),
                     values
                         .into_iter()
-                        .map(|node| (node, Orientation::Zero))
+                        .map(|node| (node.to_node(), Orientation::Zero).into())
                         .collect(),
                 )
             })
-            .collect::<HashMap<GraphNode, Vec<(GraphNode, Orientation)>>>();
+            .collect::<HashMap<GraphNode, Vec<PogGraphEdge>>>();
 
         pog_graph
     }
@@ -46,9 +84,9 @@ impl PogGraph {
         if let Some(neighbors) = self.adjacency.get_mut(u) {
             if let Some(index) = neighbors
                 .iter()
-                .position(|el| el.0 == *v)
+                .position(|el| el.from == *v)
             {
-                neighbors[index].1 = orientation;
+                neighbors[index].orientation = orientation;
             }
         }
     }
@@ -66,7 +104,7 @@ impl PogGraph {
 
 impl GraphTrait for PogGraph {
     type Node = GraphNode;
-    type Edge = (GraphNode, Orientation);
+    type Edge = PogGraphEdge;
 
     fn nodes(&self) -> Vec<Self::Node> {
         self.nodes.clone()
