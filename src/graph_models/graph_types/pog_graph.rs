@@ -46,7 +46,7 @@ impl PogGraph {
         if let Some(neighbors) = self.adjacency.get_mut(u) {
             if let Some(index) = neighbors
                 .iter()
-                .position(|el| el.0 == *v && el.1 == Orientation::Zero)
+                .position(|el| el.0 == *v)
             {
                 neighbors[index].1 = orientation;
             }
