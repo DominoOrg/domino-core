@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::graph_models::graph_types::{
-    graph::GraphTrait, pog_graph::PogGraph, under_graph::UnderlyingGraph,
+    graph::GraphTrait, pog_graph::PogGraph, under_graph::UnderlyingGraph, GraphNode,
 };
 
 #[derive(Debug)]
@@ -28,15 +28,15 @@ impl AuxiliaryGraph {
                     .into_iter()
                     .filter(|neighbor| *neighbor != node)
                     .map(|neighbor| (node.clone(), neighbor))
-                    .collect::<Vec<(String, String)>>()
+                    .collect::<Vec<(GraphNode, GraphNode)>>()
             })
             .flatten()
-            .collect::<Vec<(String, String)>>();
+            .collect::<Vec<(GraphNode, GraphNode)>>();
 
         // Insert nodes
         edges.iter().for_each(|edge| {
-            graph.insert_node(edge.0.clone() + "," + edge.1.as_str());
-            graph.insert_node(edge.1.clone() + "," + edge.0.as_str());
+            graph.insert_node(edge.0.to_string() + "," + &edge.1.to_string());
+            graph.insert_node(edge.1.to_string() + "," + &edge.0.to_string());
         });
 
         // Insert edges
@@ -64,13 +64,18 @@ impl AuxiliaryGraph {
         edge.0.to_string() + "," + edge.1.as_str()
     }
 
-    pub fn string_to_edge(str: &String) -> Option<(String, String)> {
+    pub fn string_to_edge(str: &String) -> Option<(GraphNode, GraphNode)> {
         let parts = str
             .split(",")
             .map(|str| str.to_string())
             .collect::<Vec<String>>();
         if parts.len() == 2 {
-            Some((parts[0].clone(), parts[1].clone()))
+            Some(
+                (
+                    i32::from_str_radix(&parts[0], 10).unwrap() as GraphNode,
+                    i32::from_str_radix(&parts[1], 10).unwrap() as GraphNode
+                )
+            )
         } else {
             None
         }

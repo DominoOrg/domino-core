@@ -19,7 +19,7 @@ impl RegularGraph {
 
         // Insert nodes into the graph
         for i in 0..=n {
-            graph.insert_node(i.to_string());
+            graph.insert_node(i);
         }
 
         // Build the adjacency list based on the value of N
@@ -36,15 +36,15 @@ impl RegularGraph {
                 .nodes()
                 .into_iter()
                 .map(|node| {
-                    let i = isize::from_str_radix(&node, 10).unwrap();
+                    let i = node;
                     let neighbors = graph
                         .nodes()
                         .into_iter()
                         .filter(|node2| {
-                            let j = isize::from_str_radix(&node2, 10).unwrap();
+                            let j = *node2;
                             return i == j
-                                || (j < i && j != i.saturating_sub(((n + 1) / 2) as isize))
-                                || (i < j && i != j.saturating_sub(((n + 1) / 2) as isize));
+                                || (j < i && j != ((i + ((n + 1) / 2)) % (n + 1)))
+                                || (i < j && i != ((j + ((n + 1) / 2)) % (n + 1)));
                         })
                         .collect();
                     (node, neighbors)

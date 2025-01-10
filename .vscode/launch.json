@@ -1,0 +1,141 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'domino_lib'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "domino_lib",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'classify'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=classify",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "classify",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'generate_puzzle'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=generate_puzzle",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "generate_puzzle",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'generate_sequence'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=generate_sequence",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "generate_sequence",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'mod'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=mod",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "mod",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'solve'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=solve",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "solve",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'validate'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=validate",
+          "--package=domino-lib"
+        ],
+        "filter": {
+          "name": "validate",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

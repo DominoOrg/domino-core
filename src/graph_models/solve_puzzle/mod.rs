@@ -11,6 +11,7 @@ use solve_planar::solve_planar;
 
 mod coloring;
 mod solve_planar;
+mod hierholzer;
 
 pub fn get_n(puzzle: &Puzzle) -> usize {
     let l = puzzle.len();
@@ -61,25 +62,29 @@ fn solve_non_planar(
 
 pub fn solve(puzzle: &Puzzle) -> Option<Vec<(usize, usize)>> {
     // Create a pog graph representing the puzzle
+    println!("puzzle: {puzzle}");
     let n = get_n(puzzle);
+    println!("n: {n}");
     let reg = RegularGraph::new(n);
+    println!("reg: {reg:?}");
     let mut pog = PogGraph::from(&reg);
     let puzzle: Vec<Option<(usize, usize)>> = puzzle.clone().into();
 
     for tile in puzzle.iter() {
         if let Some(tile) = tile {
             pog.insert_or_update(
-                tile.0.to_string(),
-                Some((tile.1.to_string(), Orientation::Zero)),
-                (tile.1.to_string(), Orientation::Positive),
+                tile.0,
+                Some((tile.1, Orientation::Zero)),
+                (tile.1, Orientation::Positive),
             );
             pog.insert_or_update(
-                tile.1.to_string(),
-                Some((tile.0.to_string(), Orientation::Zero)),
-                (tile.0.to_string(), Orientation::Negative),
+                tile.1,
+                Some((tile.0, Orientation::Zero)),
+                (tile.0, Orientation::Negative),
             );
         }
     }
+    println!("pog: {pog:?}");
 
     // If the pog has less than 5 nodes brute force the completion until it's not complete and each node has even degree
     // Else if the pog has more than 5 nodes use lexicographic coloring

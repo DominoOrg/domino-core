@@ -6,8 +6,10 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, pog_graph::PogGraph, regular_graph::RegularGraph, Orientation,
 };
 
+use super::GraphNode;
+
 #[allow(dead_code)]
-pub fn init_graph(sequence: Vec<Option<(String, String)>>) -> PogGraph {
+pub fn init_graph(sequence: Vec<Option<(GraphNode, GraphNode)>>) -> PogGraph {
     let l = sequence.len();
     let n_p = (-3.0 + (1.0 + 8.0 * (l as f64)).sqrt()) / 2.0;
     let n_d = (-2.0 + (8.0 * (l as f64)).sqrt()) / 2.0;
@@ -46,7 +48,7 @@ pub fn init_graph(sequence: Vec<Option<(String, String)>>) -> PogGraph {
 }
 
 #[allow(dead_code)]
-fn next_node(neighbors: &[String]) -> String {
+fn next_node(neighbors: &[GraphNode]) -> GraphNode {
     neighbors[0].clone() // Deterministically pick the first neighbor
 }
 
@@ -56,7 +58,7 @@ pub fn hierholzer(reg_graph: &mut RegularGraph) -> PogGraph {
     let mut stack = Vec::new();
 
     // Start from a random node
-    let mut current_node = next_node(&reg_graph.nodes().iter().cloned().collect::<Vec<String>>());
+    let mut current_node = next_node(&reg_graph.nodes().iter().cloned().collect::<Vec<GraphNode>>());
     let mut neighbors = reg_graph
         .adjacency()
         .get(&current_node)
@@ -105,7 +107,7 @@ pub fn hierholzer(reg_graph: &mut RegularGraph) -> PogGraph {
 }
 
 #[allow(dead_code)]
-fn find_eulerian_path(graph: &HashMap<String, Vec<String>>) -> Option<Vec<String>> {
+fn find_eulerian_path(graph: &HashMap<GraphNode, Vec<GraphNode>>) -> Option<Vec<GraphNode>> {
     let mut path = Vec::new();
     let mut visited_edges = HashSet::new();
 
@@ -123,10 +125,10 @@ fn find_eulerian_path(graph: &HashMap<String, Vec<String>>) -> Option<Vec<String
 
 #[allow(dead_code)]
 fn eulerian_dfs(
-    node: &String,
-    graph: &HashMap<String, Vec<String>>,
-    visited_edges: &mut HashSet<(String, String)>,
-    path: &mut Vec<String>,
+    node: &GraphNode,
+    graph: &HashMap<GraphNode, Vec<GraphNode>>,
+    visited_edges: &mut HashSet<(GraphNode, GraphNode)>,
+    path: &mut Vec<GraphNode>,
 ) {
     for neighbor in &graph[node] {
         // If the edge hasn't been visited, traverse it
@@ -145,12 +147,12 @@ fn eulerian_dfs(
 }
 
 #[allow(dead_code)]
-fn generate_solution(n: usize) -> Vec<(String, String)> {
+fn generate_solution(n: usize) -> Vec<(GraphNode, GraphNode)> {
     // Initialize the graph
     let reg_graph = RegularGraph::new(n);
 
     // Generate the Eulerian path using the Hierholzer algorithm
-    let first_node = "0".to_string();
+    let first_node = next_node(&reg_graph.nodes().iter().cloned().collect::<Vec<GraphNode>>());
     let mut path = Vec::new();
     eulerian_dfs(
         &first_node,
@@ -160,28 +162,28 @@ fn generate_solution(n: usize) -> Vec<(String, String)> {
     );
 
     // Convert the adjacency list of PogGraph into a sequence of edges
-    let sequence: Vec<(String, String)> = path
+    let sequence: Vec<(GraphNode, GraphNode)> = path
         .windows(2)
         .map(|tuple| (tuple[0].clone(), tuple[1].clone()))
-        .collect::<Vec<(String, String)>>();
+        .collect::<Vec<(GraphNode, GraphNode)>>();
 
     sequence
 }
 
 #[allow(dead_code)]
-fn remove_tiles(puzzle: &mut Vec<Option<(String, String)>>) {
+fn remove_tiles(puzzle: &mut Vec<Option<(GraphNode, GraphNode)>>) {
     let mut seed = thread_rng();
     let random = seed.gen_range(0..puzzle.len());
     puzzle[random] = None;
 }
 
 #[allow(dead_code)]
-fn generate_puzzle(sequence: Vec<(String, String)>) -> Vec<Option<(String, String)>> {
+fn generate_puzzle(sequence: Vec<(GraphNode, GraphNode)>) -> Vec<Option<(GraphNode, GraphNode)>> {
     // Initialize the puzzle (a copy of the sequence)
-    let mut puzzle: Vec<Option<(String, String)>> = sequence
+    let mut puzzle: Vec<Option<(GraphNode, GraphNode)>> = sequence
         .into_iter()
         .map(Some)
-        .collect::<Vec<Option<(String, String)>>>();
+        .collect::<Vec<Option<(GraphNode, GraphNode)>>>();
 
     // Remove tiles
     remove_tiles(&mut puzzle);
@@ -190,7 +192,7 @@ fn generate_puzzle(sequence: Vec<(String, String)>) -> Vec<Option<(String, Strin
 }
 
 #[allow(dead_code)]
-pub fn generate(n: usize) -> Vec<Option<(String, String)>> {
+pub fn generate(n: usize) -> Vec<Option<(GraphNode, GraphNode)>> {
     let solution = generate_solution(n);
     generate_puzzle(solution)
 }

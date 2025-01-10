@@ -2,10 +2,12 @@ use std::collections::HashMap;
 
 use crate::graph_models::graph_types::{graph::GraphTrait, pog_graph::PogGraph, Orientation};
 
+use super::GraphNode;
+
 #[derive(Debug)]
 pub struct DirectedGraph {
-    nodes: Vec<String>,
-    adjacency: HashMap<String, Vec<(String, Orientation)>>,
+    nodes: Vec<GraphNode>,
+    adjacency: HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,
 }
 
 impl DirectedGraph {
@@ -15,7 +17,7 @@ impl DirectedGraph {
             adjacency: HashMap::new(),
         };
 
-        let arcs: Vec<(String, String)> = pog_graph
+        let arcs: Vec<(GraphNode, GraphNode)> = pog_graph
             .adjacency()
             .into_iter()
             .map(|(node, neighbors)| {
@@ -28,10 +30,10 @@ impl DirectedGraph {
                             None
                         }
                     })
-                    .collect::<Vec<(String, String)>>()
+                    .collect::<Vec<(GraphNode, GraphNode)>>()
             })
             .flatten()
-            .collect::<Vec<(String, String)>>();
+            .collect::<Vec<(GraphNode, GraphNode)>>();
 
         for (u, v) in arcs {
             digraph.insert_node(u.clone());
@@ -53,8 +55,8 @@ impl DirectedGraph {
 }
 
 impl GraphTrait for DirectedGraph {
-    type Node = String;
-    type Edge = (String, Orientation);
+    type Node = GraphNode;
+    type Edge = (GraphNode, Orientation);
 
     fn nodes(&self) -> Vec<Self::Node> {
         self.nodes.clone()

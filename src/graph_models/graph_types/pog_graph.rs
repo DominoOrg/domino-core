@@ -37,7 +37,7 @@ impl PogGraph {
                         .collect(),
                 )
             })
-            .collect::<HashMap<String, Vec<(String, Orientation)>>>();
+            .collect::<HashMap<GraphNode, Vec<(GraphNode, Orientation)>>>();
 
         pog_graph
     }

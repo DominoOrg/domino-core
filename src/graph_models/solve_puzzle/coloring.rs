@@ -1,19 +1,19 @@
 use std::collections::{HashMap, VecDeque};
 
 use crate::graph_models::graph_types::{
-    aux_graph::AuxiliaryGraph, graph::GraphTrait, pog_graph::PogGraph,
+    aux_graph::AuxiliaryGraph, graph::GraphTrait, pog_graph::PogGraph, GraphNode,
 };
 
 #[allow(dead_code)]
 fn comes_before(a_str: &String, b_str: &String) -> i32 {
-    let a: (String, String) = AuxiliaryGraph::string_to_edge(a_str).unwrap();
-    let b: (String, String) = AuxiliaryGraph::string_to_edge(b_str).unwrap();
+    let a: (GraphNode, GraphNode) = AuxiliaryGraph::string_to_edge(a_str).unwrap();
+    let b: (GraphNode, GraphNode) = AuxiliaryGraph::string_to_edge(b_str).unwrap();
     if a.0 == b.0 && a.1 < b.1 {
-        a.1.parse::<i32>().unwrap() - b.1.parse::<i32>().unwrap()
+        (a.1 as i32) - (b.1 as i32)
     } else if a.0 < b.0 {
-        a.0.parse::<i32>().unwrap() - b.0.parse::<i32>().unwrap()
+        (a.0 as i32) - (b.0 as i32)
     } else {
-        b.0.parse::<i32>().unwrap() - a.0.parse::<i32>().unwrap()
+        (b.0 as i32) - (a.0 as i32)
     }
 }
 

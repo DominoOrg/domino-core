@@ -4,7 +4,7 @@ use crate::graph_models::graph_types::{
     graph::GraphTrait, pog_graph::PogGraph, GraphNode, Orientation,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UnderlyingGraph {
     nodes: Vec<GraphNode>,
     adjacency: HashMap<GraphNode, Vec<GraphNode>>,
@@ -21,7 +21,7 @@ impl UnderlyingGraph {
             .adjacency()
             .into_iter()
             .map(|(node, adjacencies)| {
-                let neighbors: Vec<String> = adjacencies
+                let neighbors: Vec<GraphNode> = adjacencies
                     .into_iter()
                     .filter_map(|(neighbor, orientation)| {
                         if orientation == Orientation::Zero {
@@ -30,7 +30,7 @@ impl UnderlyingGraph {
                             None
                         }
                     })
-                    .collect::<Vec<String>>();
+                    .collect::<Vec<GraphNode>>();
                 (node, neighbors)
             })
             .collect();
@@ -38,7 +38,7 @@ impl UnderlyingGraph {
             .adjacency()
             .keys()
             .map(|key| key.clone())
-            .collect::<Vec<String>>();
+            .collect::<Vec<GraphNode>>();
 
         graph
     }

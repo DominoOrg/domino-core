@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::graph_models::graph_types::Orientation;
+use crate::graph_models::graph_types::{GraphNode, Orientation};
 use rand::{thread_rng, Rng};
 
-fn next_vertex(vertexes: Vec<&String>, random: bool) -> String {
+fn next_vertex(vertexes: Vec<&GraphNode>, random: bool) -> GraphNode {
     if random {
         let mut seed = thread_rng();
         let index = seed.gen_range(0..vertexes.len());
@@ -14,9 +14,9 @@ fn next_vertex(vertexes: Vec<&String>, random: bool) -> String {
 }
 
 fn remove_reverse_edge(
-    adj_list: &mut HashMap<String, Vec<(String, Orientation)>>,
-    v1: &str,
-    v2: &str,
+    adj_list: &mut HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,
+    v1: &GraphNode,
+    v2: &GraphNode,
     orientation: Orientation,
 ) {
     if let Some(neighbors) = adj_list.get_mut(v2) {
@@ -30,9 +30,9 @@ fn remove_reverse_edge(
 }
 
 fn dfs(
-    adj_list: &mut HashMap<String, Vec<(String, Orientation)>>,
-    path: &mut Vec<String>,
-    vertex: String,
+    adj_list: &mut HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,
+    path: &mut Vec<GraphNode>,
+    vertex: GraphNode,
 ) {
     while let Some((next_vertex, orientation)) = adj_list
         .get_mut(&vertex)
@@ -45,13 +45,13 @@ fn dfs(
 }
 
 pub fn as_sequence(
-    adj: &HashMap<String, Vec<(String, Orientation)>>,
+    adj: &HashMap<GraphNode, Vec<(GraphNode, Orientation)>>,
     random: bool,
-) -> Vec<Option<(usize, usize)>> {
+) -> Vec<Option<(GraphNode, GraphNode)>> {
     let mut path = Vec::new();
     let mut adj_list = adj.clone();
 
-    let mut vertexes = adj_list.keys().into_iter().collect::<Vec<&String>>();
+    let mut vertexes = adj_list.keys().into_iter().collect::<Vec<&GraphNode>>();
     vertexes.sort();
     let start_vertex = next_vertex(vertexes, random);
     dfs(&mut adj_list, &mut path, start_vertex.clone());
@@ -64,10 +64,7 @@ pub fn as_sequence(
         if let Some(neighbors) = adj.get(node1) {
             if let Some((_, orientation)) = neighbors.iter().find(|(adj, _)| adj == node2) {
                 if *orientation == Orientation::Positive || *orientation == Orientation::Negative {
-                    mapped_path.push(Some((
-                        i32::from_str_radix(&node1.clone(), 10).unwrap() as usize,
-                        i32::from_str_radix(&node2.clone(), 10).unwrap() as usize,
-                    )));
+                    mapped_path.push(Some((node1.clone(), node2.clone())));
                 } else {
                     mapped_path.push(None);
                 }

@@ -1,9 +1,9 @@
 use crate::graph_models::graph_types::{
-    graph::GraphTrait, pog_graph::PogGraph, regular_graph::RegularGraph,
+    graph::GraphTrait, pog_graph::PogGraph, regular_graph::RegularGraph, GraphNode,
 };
 use rand::{thread_rng, Rng};
 
-fn next_node(neighbors: &[String], random: bool) -> String {
+fn next_node(neighbors: &[GraphNode], random: bool) -> GraphNode {
     if random {
         let mut seed = thread_rng();
         let index = seed.gen_range(0..neighbors.len());
@@ -18,7 +18,7 @@ pub fn hierholzer(reg_graph: &mut RegularGraph, random: bool) -> PogGraph {
     let mut stack = Vec::new();
 
     // Start from a random node
-    let mut vertexes = reg_graph.nodes().into_iter().collect::<Vec<String>>();
+    let mut vertexes = reg_graph.nodes().into_iter().collect::<Vec<GraphNode>>();
     vertexes.sort();
     let mut current_node = next_node(&vertexes, random);
     let mut neighbors = reg_graph

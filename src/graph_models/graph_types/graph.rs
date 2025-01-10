@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub trait GraphTrait {
-    type Node: std::cmp::Eq + std::hash::Hash + Clone; // `Node` type, must be hashable for HashSet and HashMap
+    type Node: std::fmt::Debug + std::cmp::Eq + std::hash::Hash + Clone; // `Node` type, must be hashable for HashSet and HashMap
     type Edge: std::cmp::Eq + Clone; // `Edge` type
 
     fn nodes(&self) -> Vec<Self::Node>;
