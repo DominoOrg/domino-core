@@ -8,7 +8,7 @@ start
 note right
 The number of random removals choosen will affect
 the validity of the puzzle. A puzzle is known to be
-non-valid if the missing tiles are more than n+1
+non-valid if the missing tiles are more than len - (n+1)
 end note
 repeat
     :A random position gets choosen;
