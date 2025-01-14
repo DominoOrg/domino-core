@@ -3,6 +3,9 @@ start
 :The user submits a puzzle to be validated;
 :The puzzle gets solved;
 if (Was the puzzle solvable?) then (yes)
+if (The puzzle is not well formed?) then (yes)
+    end
+endif
 :Collect the positions of the missinig tiles into 'positions';
 :Collect all the missing tiles into 'missing_tiles';
 :A current 'is_valid' variable gets initialized to true;

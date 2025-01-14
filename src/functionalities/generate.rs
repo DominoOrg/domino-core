@@ -1,13 +1,13 @@
 use rand::Rng;
 
-use crate::types::{domino_types::{Puzzle, Solution}, graph_types::{EulerianCycleFinder, Graph}};
+use crate::types::{domino_types::{Puzzle, Solution, Tile}, graph_types::{EulerianCycleFinder, Graph}};
 
 pub fn generate_puzzle(n: usize) -> Puzzle {
     let graph = Graph::regular(n);
     let eulerian_cycle = EulerianCycleFinder::find_cycle(&graph);
     let solution: Solution = eulerian_cycle
     .into_iter().map(|arc| {
-        (arc.source, arc.destination)
+        Tile(arc.source, arc.destination)
     })
     .collect();
     let mut puzzle: Puzzle = solution.into_iter()
