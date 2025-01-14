@@ -1,0 +1,16 @@
+@startuml classify_activity
+start
+:The user inputs a puzzle to classify;
+:The 'n' size is computed;
+floating note right
+    function already defined in solve
+end note
+:The number of holes is counted;
+:For each hole is counted how many missing tiles it has;
+if (The maximum size of an hole is greater than ?) is (true) then
+
+else (false)
+
+endif 
+end
+@enduml

@@ -1,0 +1,35 @@
+@startuml validate_activity
+start
+:The user submits a puzzle to be validated;
+:The puzzle gets solved;
+if (Was the puzzle solvable?) then (yes)
+:Collect the positions of the missinig tiles into 'positions';
+:Collect all the missing tiles into 'missing_tiles';
+:A current 'is_valid' variable gets initialized to true;
+repeat
+:The tile at the current position gets tested;
+repeat
+:The current missing tile tries to be inserted in the current position to be tested;
+if (the tile gets inserted?) is (yes) then
+    if (the puzzle is not solvable?) is (yes) then
+        :'is_valid' gets set to false;
+    endif
+endif
+if ('is_valid' is false?) then
+    break
+endif
+repeat while (each missing tile has been tried?) is (no) not (yes)
+if ('is_valid' is false?) then
+    break
+endif
+repeat while (each position has been tested?) is (no) not (yes)
+if ('is_valid' is true?) then
+    :The puzzle is valid;
+else
+    :The puzzle is not valid;
+endif
+else (no)
+    :The puzzle is not valid;
+endif
+end
+@enduml

@@ -1,0 +1,22 @@
+@startsalt lib_structure
+{
+    {T
+        +lib
+        ++types
+        +++domino_types
+        ++++tile
+        ++++puzzle
+        ++++solution
+        +++graph_types
+        ++++orientation
+        ++++direction
+        ++++arc
+        ++++graph
+        ++functionalities
+        +++generate
+        +++validate
+        +++solve
+        +++classify
+    }
+}
+@endsalt

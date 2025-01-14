@@ -1,0 +1,21 @@
+@startuml generate_activity
+start
+:User requires a new puzzle with a specific length 'n';
+:A regular graph from 'n' gets built;
+:Hierholzer gets applied to retrieve an eulerian cycle;
+:A solution is built from the eulerian cycle;
+:A random number of tiles to be removed 'removals' gets choosen;
+note right
+The number of random removals choosen will affect
+the validity of the puzzle. A puzzle is known to be
+non-valid if the missing tiles are more than n+1
+end note
+repeat
+    :A random position gets choosen;
+    while (position choosen is already empty?) is (yes)
+        :A new random position gets choosen;
+    endwhile (no)
+    :The tile at the random position gets removed;
+repeat while (the number of removed tiles is equal to 'removals'?) is (no) not (yes)
+end
+@enduml
