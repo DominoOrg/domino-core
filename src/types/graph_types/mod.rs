@@ -1,45 +1,54 @@
 use std::collections::{HashMap, VecDeque};
+use graph::Graph;
 
+use super::domino_types::{DominoError, SequenceScraper};
+use super::graph_types::node::Node;
 
-type Orientation = i32;
+pub(crate) mod node;
+pub(crate) mod graph;
 
-#[derive(Debug, Default, Clone, Copy)]
-struct Direction(Orientation, i32);
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+enum Orientation {
+    #[default]
+    Negative,
+    Positive
+}
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub(crate) struct Arc {
-    pub source: i32,
-    pub destination: i32,
-    direction: Option<Direction>
+    pub source: Node,
+    pub destination: Node,
+    pub orientation: Option<Orientation>,
+    pub position: Option<usize>
 }
 
-#[derive(Debug, Default, Clone)]
-pub(crate) struct Graph {
-    nodes: Vec<i32>,
-    adjacency: HashMap<i32, Vec<Arc>>
-}
+pub(crate) struct BipartiteChecker;
 
-impl Graph {
-    pub fn regular(n: usize) -> Self {
-        Graph {
-            nodes: (0..n as i32).collect::<Vec<i32>>(),
-            adjacency: (0..n as i32)
-                .map(|source_node| {
-                    let edges = (0..n).map(|destination_node| {
-                        Arc {
-                            source: source_node,
-                            destination: destination_node as i32,
-                            direction: None
-                        }
-                    }).collect::<Vec<Arc>>();
-                    (source_node, edges)
-                })
-                .collect()
-        }
+impl BipartiteChecker {
+    pub fn is_bipartite(graph: &Graph) -> bool {
+        todo!();
+        true
     }
 }
 
-pub struct EulerianCycleFinder;
+pub(crate) struct ColoringFinder;
+
+impl ColoringFinder {
+    pub fn lexicographic_2coloring(graph: &Graph, ordering: &Vec<Arc>) -> Result<HashMap<Node, bool>, DominoError> {
+        todo!()
+    }
+}
+
+pub(crate) struct OrderingFinder;
+
+impl OrderingFinder {
+    pub fn perfect_elimination_order(graph: &Graph) -> Result<Vec<Arc>, DominoError> {
+        todo!();
+        Err(DominoError::UnsolvableGraph("Unsolvable graph".to_string()))
+    }
+}
+
+pub(crate) struct EulerianCycleFinder;
 
 impl EulerianCycleFinder {
     pub fn find_cycle(graph: &Graph) -> Vec<Arc> {
@@ -48,23 +57,23 @@ impl EulerianCycleFinder {
         let mut stack = VecDeque::new();
         let mut visited = HashMap::new();
 
-        let start_node = *graph.nodes.first().unwrap();
+        let start_node = graph.nodes.first().unwrap().clone();
         stack.push_back(start_node);
 
         while let Some(node) = stack.pop_back() {
             if let Some(neighbors) = graph.adjacency.get(&node) {
-                if let Some(unvisited) = neighbors.iter().position(|arc| !visited.contains_key(&(node, arc.destination))) {
-                    let arc = neighbors[unvisited];
-                    stack.push_back(node);
-                    stack.push_back(arc.destination);
-                    visited.insert((node, arc.destination), true);
+                if let Some(unvisited) = neighbors.iter().position(|arc| !visited.contains_key(&(node.clone(), arc.destination.clone()))) {
+                    let arc = neighbors[unvisited].clone();
+                    stack.push_back(node.clone());
+                    stack.push_back(arc.destination.clone());
+                    visited.insert((node, arc.destination.clone()), true);
                     circuit.push(arc); // Add the arc to the circuit
                 } else {
                     if !circuit.is_empty() && circuit.last().unwrap().destination != node {
                         // If we've just completed a cycle, we might need to add an arc back to the start of this cycle
                         let last_arc = circuit.last().unwrap();
                         if let Some(back_arc) = graph.adjacency.get(&last_arc.destination).and_then(|arcs| arcs.iter().find(|a| a.destination == node)) {
-                            circuit.push(*back_arc);
+                            circuit.push(back_arc.clone());
                         }
                     }
                 }
