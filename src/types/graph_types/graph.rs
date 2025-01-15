@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{functionalities::common::SequenceScraper, types::domino_types::{error::DominoError, Puzzle}};
+use crate::{functionalities::common::get_n, types::domino_types::{error::DominoError, Puzzle}};
 
 use super::{Arc, Node, Orientation};
 
@@ -31,7 +31,7 @@ impl Graph {
     }
 
     pub fn partially_oriented(puzzle: &Puzzle) -> Result<Self, DominoError> {
-        let n = SequenceScraper::get_n(puzzle)?;
+        let n = get_n(puzzle)?;
         let mut graph = Graph::regular(n.try_into().unwrap());
         for (index, tile) in puzzle.iter().enumerate() {
             if let Some(tile) = tile {

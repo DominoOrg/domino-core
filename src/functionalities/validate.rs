@@ -1,12 +1,12 @@
 use crate::types::domino_types::{error::DominoError, Puzzle};
 
-use super::{common::SequenceScraper, solve::solve_puzzle};
+use super::{common::{get_empty_positions, get_missing_tiles}, solve::solve_puzzle};
 
 pub fn validate_puzzle(puzzle: &Puzzle) -> Result<bool, DominoError> {
     let solved_puzzle = solve_puzzle(puzzle);
     if solved_puzzle.is_ok() {
-        let empty_positions: Vec<usize> = SequenceScraper::get_empty_positions(puzzle)?;
-        let missing_tiles = SequenceScraper::get_missing_tiles(puzzle)?;
+        let empty_positions: Vec<usize> = get_empty_positions(puzzle)?;
+        let missing_tiles = get_missing_tiles(puzzle)?;
         for empty_position in empty_positions {
             for tile in missing_tiles.iter() {
                 let mut new_puzzle = puzzle.clone();

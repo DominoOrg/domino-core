@@ -1,10 +1,11 @@
 use rand::Rng;
 use crate::types::{domino_types::{Puzzle, Solution, Tile}, graph_types::graph::Graph};
-use super::graph_common::EulerianCycleFinder;
+
+use super::graph_common::find_eulerian_cycle;
 
 pub fn generate_puzzle(n: usize) -> Puzzle {
     let graph = Graph::regular(n);
-    let eulerian_cycle = EulerianCycleFinder::find_cycle(&graph);
+    let eulerian_cycle = find_eulerian_cycle(&graph);
     let solution: Solution = eulerian_cycle
     .into_iter().map(|arc| {
         Tile(arc.source.try_into().unwrap(), arc.destination.try_into().unwrap())
