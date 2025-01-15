@@ -4,6 +4,7 @@
         +lib
         ++types
         +++domino_types
+        ++++error
         ++++tile
         ++++puzzle
         ++++solution
@@ -17,6 +18,8 @@
         +++validate
         +++solve
         +++classify
+        +++common
+        +++graph_common
     }
 }
 @endsalt
