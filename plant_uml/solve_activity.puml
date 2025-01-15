@@ -12,9 +12,9 @@ if (the result of (-3 + sqrt(1 + 8l))/2 is integer?) is (yes) then
 else (no)
     :Set 'n' to the (-1 + sqrt(2l));
 endif
-if (The 'n' value is less than 5) is (yes) then
+if (The 'n' value is less than 4) is (yes) then
     floating note right
-        The n value of 5 represent the last regular graph which is also planar
+        The n value of 3 represent the last regular graph which is also planar
         if the graph is planar the method choosen to orient the graph is to brute force
         each possible completion while if the graph is chordal (not planar) we apply
         the method from bang jensen to orient partially oriented graph and then

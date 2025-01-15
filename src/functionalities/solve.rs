@@ -3,25 +3,22 @@ use crate::types::domino_types::error::DominoError;
 use crate::types::domino_types::{Puzzle, Solution, Tile};
 use crate::types::graph_types::graph::Graph;
 use super::common::SequenceScraper;
-use super::graph_common::{BipartiteChecker, ColoringFinder, OrderingFinder};
+use super::graph_common::{ColoringFinder, OrderingFinder};
 
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
     let n = SequenceScraper::get_n(puzzle)?;
-    if n > 5 {
+    if n >= 4 {
         let pog_graph = Graph::partially_oriented(&puzzle)?;
         let underlying_graph = Graph::underlying(&pog_graph);
         let auxiliary_graph = Graph::auxiliary(&underlying_graph);
-        if BipartiteChecker::is_bipartite(&auxiliary_graph) {
-            let mut new_puzzle = puzzle.clone();
-            let perf_elim_ordering = OrderingFinder::perfect_elimination_order(&underlying_graph)?;
-            let coloring= ColoringFinder::lexicographic_2coloring(&auxiliary_graph, &perf_elim_ordering)?;
-            coloring.into_iter().filter(|(_, color)| *color == false).for_each(|(node, _)| {
-                new_puzzle[node.try_position().unwrap()] = Some(node.try_tile().unwrap().into());
-            });
-            let solution = new_puzzle.into_iter().map(|tile| tile.unwrap()).collect();
-            return Ok(solution);
-        }
-        return Err(DominoError::InvalidPuzzle("Puzzle is not solvable".to_string()));
+        let mut new_puzzle = puzzle.clone();
+        let perf_elim_ordering = OrderingFinder::perfect_elimination_order(&underlying_graph);
+        let coloring= ColoringFinder::lexicographic_2coloring(&auxiliary_graph, &perf_elim_ordering)?;
+        coloring.into_iter().filter(|(_, color)| *color == false).for_each(|(node, _)| {
+            new_puzzle[node.try_position().unwrap()] = Some(node.try_tile().unwrap().into());
+        });
+        let solution = new_puzzle.into_iter().map(|tile| tile.unwrap()).collect();
+        return Ok(solution);
     } else {
         let mut new_puzzle = puzzle.clone();
         let missing_tiles = SequenceScraper::get_missing_tiles(puzzle)?;
