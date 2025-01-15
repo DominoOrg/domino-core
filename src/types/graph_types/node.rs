@@ -1,7 +1,6 @@
-use crate::types::domino_types::DominoError;
+use crate::types::domino_types::error::DominoError;
 
 use super::Arc;
-
 
 #[derive(Debug, Clone, Eq, Hash)]
 pub(crate) enum Node {

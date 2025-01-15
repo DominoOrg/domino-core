@@ -1,6 +1,6 @@
 use rand::Rng;
-
-use crate::types::{domino_types::{Puzzle, Solution, Tile}, graph_types::{graph::Graph, EulerianCycleFinder}};
+use crate::types::{domino_types::{Puzzle, Solution, Tile}, graph_types::graph::Graph};
+use super::graph_common::EulerianCycleFinder;
 
 pub fn generate_puzzle(n: usize) -> Puzzle {
     let graph = Graph::regular(n);

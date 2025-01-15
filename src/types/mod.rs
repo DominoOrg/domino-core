@@ -1,2 +1,2 @@
-pub(super) mod domino_types;
-pub(super) mod graph_types;
+pub(crate) mod domino_types;
+pub(crate) mod graph_types;

@@ -1,8 +1,6 @@
-use std::collections::HashSet;
+use crate::types::domino_types::{error::DominoError, Puzzle};
 
-use crate::types::domino_types::{DominoError, Puzzle, SequenceScraper, Tile};
-
-use super::solve::solve_puzzle;
+use super::{common::SequenceScraper, solve::solve_puzzle};
 
 pub fn validate_puzzle(puzzle: &Puzzle) -> Result<bool, DominoError> {
     let solved_puzzle = solve_puzzle(puzzle);

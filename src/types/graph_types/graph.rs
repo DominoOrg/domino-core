@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::types::domino_types::{DominoError, Puzzle};
+use crate::{functionalities::common::SequenceScraper, types::domino_types::{error::DominoError, Puzzle}};
 
-use super::{Arc, Node, Orientation, SequenceScraper};
+use super::{Arc, Node, Orientation};
 
 #[derive(Debug, Default, Clone)]
 pub(crate) struct Graph {

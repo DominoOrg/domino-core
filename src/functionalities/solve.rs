@@ -1,6 +1,9 @@
 use std::collections::HashSet;
-
-use crate::types::{domino_types::{DominoError, Puzzle, SequenceScraper, Solution, Tile}, graph_types::{graph::Graph, BipartiteChecker, ColoringFinder, OrderingFinder}};
+use crate::types::domino_types::error::DominoError;
+use crate::types::domino_types::{Puzzle, Solution, Tile};
+use crate::types::graph_types::graph::Graph;
+use super::common::SequenceScraper;
+use super::graph_common::{BipartiteChecker, ColoringFinder, OrderingFinder};
 
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
     let n = SequenceScraper::get_n(puzzle)?;
