@@ -1,4 +1,6 @@
 use std::collections::{HashMap, HashSet};
+use rand::seq::IteratorRandom;
+
 use crate::types::{domino_types::error::DominoError, graph_types::{graph::Graph, node::Node}};
 
 pub fn lexicographic_2coloring(graph: &Graph, ordering: &Vec<Node>) -> Result<HashMap<Node, bool>, DominoError> {
@@ -101,7 +103,7 @@ pub fn perfect_elimination_order(graph: &Graph) -> Vec<Node> {
     ordering
 }
 
-pub fn find_eulerian_cycle(graph: &Graph) -> Vec<Node> {
+pub fn find_eulerian_cycle(graph: &Graph, random: bool) -> Vec<Node> {
     #[derive(Debug, Clone, Eq, Hash)]
     struct Arc(Node, Node);
     impl PartialEq for Arc {
@@ -114,13 +116,18 @@ pub fn find_eulerian_cycle(graph: &Graph) -> Vec<Node> {
     let mut visited: HashSet<Arc> = HashSet::new();
     let mut stack: Vec<Node> = vec![graph.nodes.first().unwrap().clone()];
 
-
     while !stack.is_empty() {
         if let Some(current_vertex) = stack.pop() {
-            if let Some(unvisited_index) = graph.adjacency
+            let mut edges_iterator = graph.adjacency
             .get(&current_vertex.clone()).unwrap()
-            .iter()
-            .position(|arc| !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone()))) {
+            .iter();
+            let unvisited_edge_index = if random {
+                let mut seed = rand::thread_rng();
+                edges_iterator.enumerate().choose(&mut seed).map(|(index, _)| index)
+            } else {
+                edges_iterator.position(|arc| !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())))
+            };
+            if let Some(unvisited_index) = unvisited_edge_index {
                 stack.push(current_vertex.clone());
                 let next_vertex = graph.adjacency
                 .get(&current_vertex).unwrap()
