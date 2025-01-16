@@ -2,47 +2,19 @@
 start
 :The user requires a puzzle to be solved;
 :The puzzle gets represented through a partially oriented graph 'pog_graph';
-:Set 'n' to 0;
-floating note right
-We assume the length of the puzzle includes arcs from a node to iteself too.
-Otherwise should use the integer results of one between ((-1 + sqrt(1 + 4l))/2) and (sqrt(l))
-end note
-if (the result of (-3 + sqrt(1 + 8l))/2 is integer?) is (yes) then
-    :Set 'n' to the result;
-else (no)
-    :Set 'n' to the (-1 + sqrt(2l));
-endif
-if (The 'n' value is less than 4) is (yes) then
-    floating note right
-        The n value of 3 represent the last regular graph which is also planar
-        if the graph is planar the method choosen to orient the graph is to brute force
-        each possible completion while if the graph is chordal (not planar) we apply
-        the method from bang jensen to orient partially oriented graph and then
-        convert the graph back to the completed puzzle
-    end note
-    while (the puzzle is not complete?) is (yes) 
-        :A copy of the puzzle is done;
-        :Collect the positions of the missinig tiles into 'positions';
-        :Collect all the missing tiles into 'missing_tiles';
-    endwhile (no)
+while (the puzzle is not complete?) is (yes) 
+    :A copy of the puzzle is done;
+    :Collect the positions of the missinig tiles into 'positions';
+    :Collect all the missing tiles into 'missing_tiles';
+endwhile (no)
+repeat
+:The current empty position in positions gets evaluated;
     repeat
-    :The current empty position in positions gets evaluated;
-        repeat
-        :The current missing tile is inserted at the position;
-        if (The tile is adjacent to both his neighbors?) is (yes) then
-            break
-        endif
-        repeat while (One of the missing tiles has not been inserted?) is (yes)
-    repeat while (The position has not been filled?) is (yes)
-else (no)
-    :A graph representing the puzzle is built;
-    :An underlying graph is build containing only the unoriented edges;
-    :A perfect elimination ordering is found on the underlying graph;
-    :An auxiliary graph is built from the underlying graph;
-    :A lexicographic ordering is found from the perfect elimination ordering being applied to the nodes of the auxiliary graph;
-    :The 2-lexicographic coloring algorithm is applied;
-    :The nodes of the auxiliary graph marked with the first label of the coloring method are used to select the corresponding edges in the original graph;
-    :The tiles corresponding to the edges choosen are used to fill the puzzle;
-endif
+    :The current missing tile is inserted at the position;
+    if (The tile is adjacent to both his neighbors?) is (yes) then
+        break
+    endif
+    repeat while (One of the missing tiles has not been inserted?) is (yes)
+repeat while (The position has not been filled?) is (yes)
 end
 @enduml
