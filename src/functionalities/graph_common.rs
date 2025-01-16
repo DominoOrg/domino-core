@@ -1,6 +1,5 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-
-use crate::types::{domino_types::error::DominoError, graph_types::{graph::Graph, node::Node, Arc}};
+use std::collections::{HashMap, HashSet};
+use crate::types::{domino_types::error::DominoError, graph_types::{graph::Graph, node::Node}};
 
 pub fn lexicographic_2coloring(graph: &Graph, ordering: &Vec<Node>) -> Result<HashMap<Node, bool>, DominoError> {
     let mut colors = HashMap::new();
@@ -102,53 +101,39 @@ pub fn perfect_elimination_order(graph: &Graph) -> Vec<Node> {
     ordering
 }
 
-pub fn find_eulerian_cycle(graph: &Graph) -> Vec<Arc> {
+pub fn find_eulerian_cycle(graph: &Graph) -> Vec<Node> {
+    #[derive(Debug, Clone, Eq, Hash)]
+    struct Arc(Node, Node);
+    impl PartialEq for Arc {
+        fn eq(&self, other: &Self) -> bool {
+            (self.0 == other.0 && self.1 == other.1) ||
+            (self.0 == other.1 && self.1 == other.0)
+        }
+    }
+    let mut circuit: Vec<Node> = Vec::new();
+    let mut visited: HashSet<Arc> = HashSet::new();
+    let mut stack: Vec<Node> = vec![graph.nodes.first().unwrap().clone()];
 
-    let mut circuit = Vec::new();
-    let mut stack = VecDeque::new();
-    let mut visited = HashMap::new();
 
-    let start_node = graph.nodes.first().unwrap().clone();
-    stack.push_back(start_node);
-
-    while let Some(node) = stack.pop_back() {
-        if let Some(neighbors) = graph.adjacency.get(&node) {
-            if let Some(unvisited) = neighbors.iter().position(|arc| !visited.contains_key(&(node.clone(), arc.destination.clone()))) {
-                let arc = neighbors[unvisited].clone();
-                stack.push_back(node.clone());
-                stack.push_back(arc.destination.clone());
-                visited.insert((node, arc.destination.clone()), true);
-                circuit.push(arc); // Add the arc to the circuit
+    while !stack.is_empty() {
+        if let Some(current_vertex) = stack.pop() {
+            if let Some(unvisited_index) = graph.adjacency
+            .get(&current_vertex.clone()).unwrap()
+            .iter()
+            .position(|arc| !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone()))) {
+                stack.push(current_vertex.clone());
+                let next_vertex = graph.adjacency
+                .get(&current_vertex).unwrap()
+                .get(unvisited_index)
+                .unwrap().destination.clone();
+                visited.insert(Arc(current_vertex.clone(), next_vertex.clone()));
+                visited.insert(Arc(next_vertex.clone(), current_vertex.clone()));
+                stack.push(next_vertex);
             } else {
-                if !circuit.is_empty() && circuit.last().unwrap().destination != node {
-                    // If we've just completed a cycle, we might need to add an arc back to the start of this cycle
-                    let last_arc = circuit.last().unwrap();
-                    if let Some(back_arc) = graph.adjacency.get(&last_arc.destination).and_then(|arcs| arcs.iter().find(|a| a.destination == node)) {
-                        circuit.push(back_arc.clone());
-                    }
-                }
+                circuit.push(current_vertex.clone());
             }
         }
     }
-
-    // Reverse the circuit since we've been using a stack
-    circuit.reverse();
-
+    circuit.reverse(); // Reverse to get the correct order
     circuit
-}
-
-fn is_eulerian(graph: &Graph) -> bool {
-    // Simplified check for Eulerian cycle:
-    // - All non-zero degree vertices should have even degree for cycle
-    // - Exactly 0 or 2 vertices with odd degree for path
-    let mut odd_degree = 0;
-    for node in &graph.nodes {
-        if let Some(arcs) = graph.adjacency.get(&node) {
-            let degree = arcs.len();
-            if degree % 2 != 0 {
-                odd_degree += 1;
-            }
-        }
-    }
-    odd_degree == 0 // For Eulerian cycle, change to `odd_degree <= 2` for Eulerian path
 }
