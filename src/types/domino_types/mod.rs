@@ -16,6 +16,12 @@ impl From<(i32, i32)> for Tile {
     }
 }
 
+impl Tile {
+    pub fn flip(self) -> Self {
+        Tile(self.1, self.0)
+    }
+}
+
 pub type Solution = Vec<Tile>;
 
 pub type Puzzle = Vec<Option<Tile>>;

@@ -112,36 +112,47 @@ pub fn find_eulerian_cycle(graph: &Graph, random: bool) -> Vec<Node> {
             (self.0 == other.1 && self.1 == other.0)
         }
     }
-    let mut seed = rand::thread_rng();
-    let mut circuit: Vec<Node> = Vec::new();
-    let mut visited: HashSet<Arc> = HashSet::new();
-    let mut stack: Vec<Node> = vec![
+    fn first_node(graph: &Graph, random: bool) -> Node {
+        let mut seed = rand::thread_rng();
         if random {
             graph.nodes.choose(&mut seed).unwrap().clone()
         } else {
             graph.nodes.first().unwrap().clone()
         }
+    }
+    fn next_node(graph: &Graph, random: bool, visited: HashSet<Arc>, current_vertex: Node) -> Option<usize> {
+        let mut seed = rand::thread_rng();
+        let mut edges_iterator = graph.adjacency
+        .get(&current_vertex.clone()).unwrap()
+        .iter();
+        if random {
+            edges_iterator
+            .enumerate()
+            .filter(|(_, arc)|
+                !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+                !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
+            )
+            .choose(&mut seed)
+            .map(|(index, _)| index)
+        } else {
+            edges_iterator
+            .position(|arc| 
+                !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+                !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
+            )
+        }
+    }
+    let mut circuit: Vec<Node> = Vec::new();
+    let mut visited: HashSet<Arc> = HashSet::new();
+    let mut stack: Vec<Node> = vec![
+        first_node(graph, random)
     ];
 
     while !stack.is_empty() {
         if let Some(current_vertex) = stack.pop() {
             // Choice of the next node
-            let mut edges_iterator = graph.adjacency
-            .get(&current_vertex.clone()).unwrap()
-            .iter();
-            let unvisited_edge_index = if random {
-                edges_iterator
-                .filter(|arc| !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())))
-                .enumerate()
-                .choose(&mut seed)
-                .map(|(index, _)| index)
-            } else {
-                edges_iterator
-                .position(|arc| 
-                    !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
-                    !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
-                )
-            };
+            let unvisited_edge_index = next_node(graph, random, visited.clone(), current_vertex.clone());
+
             // Process unvisided edges of the next node 
             if let Some(unvisited_index) = unvisited_edge_index {
                 stack.push(current_vertex.clone());

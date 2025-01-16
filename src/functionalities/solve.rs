@@ -22,6 +22,7 @@ pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
     } else {
         let mut new_puzzle = puzzle.clone();
         let missing_tiles = get_missing_tiles(puzzle)?;
+        println!("{missing_tiles:?}");
         if solve_planar_r(&mut new_puzzle, &missing_tiles, 0) {
             let solution = new_puzzle.into_iter().map(|tile| tile.unwrap()).collect();
             return Ok(solution);
@@ -44,8 +45,16 @@ fn solve_planar_r(puzzle: &mut Puzzle, missing_tiles: &HashSet<Tile>, current_po
 
     // Try each element in the current empty slot
     for &element in missing_tiles {
-        // Check if this element can be used (not already in the puzzle)
-        if puzzle.iter().all(|&slot| slot != Some(element)) {
+        // Check if this element can be used (not already in the puzzle and adjacent to its neighbors)
+        if puzzle.iter().all(|&slot| slot != Some(element)) &&
+            (
+                puzzle[(puzzle.len() + current_position - 1) % puzzle.len()].is_none() ||
+                puzzle[(puzzle.len() + current_position - 1) % puzzle.len()].unwrap().1 == element.0
+            ) &&
+            (
+                puzzle[(current_position + 1) % puzzle.len()].is_none() ||
+                puzzle[(current_position + 1) % puzzle.len()].unwrap().0 == element.1
+            ) {
             // Place the element
             puzzle[current_position] = Some(element);
             

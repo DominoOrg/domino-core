@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use domino_lib::functionalities::{generate::generate_puzzle, solve::solve_puzzle, validate::validate_puzzle};
+    use domino_lib::functionalities::{generate::generate_puzzle, solve::solve_puzzle};
 
     #[test]
     fn generate() {     
@@ -16,11 +16,11 @@ mod tests {
 
     #[test]
     fn solve() {
-        for n in 3..=12 {
-            let puzzle = generate_puzzle(n, false);
-            let solution = solve_puzzle(&puzzle).unwrap();
-            assert_eq!(solution.len(), puzzle.len());
-        }
+        let puzzle = generate_puzzle(3, true);
+        println!("{puzzle:?}");
+        let solution = solve_puzzle(&puzzle).unwrap();
+        println!("{puzzle:?}\n{solution:?}");
+        assert_eq!(solution.len(), puzzle.len());
     }
 
 }

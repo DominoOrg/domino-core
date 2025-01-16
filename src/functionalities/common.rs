@@ -25,11 +25,18 @@ pub fn get_n(puzzle: &Puzzle) -> Result<i32, DominoError> {
 pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> {
     let n = get_n(puzzle)?;
     let tileset: HashSet<Tile> = (0..(n + 1)).map(|i| {
-        ((i + 1)..(n + 1)).map(|j| Tile(i, j)).collect::<Vec<Tile>>()
+        ((0)..(n + 1)).map(|j| Tile(i, j)).collect::<Vec<Tile>>()
     })
     .flatten()
     .collect();
-    let used_tiles: HashSet<Tile> = puzzle.iter().filter_map(|tile| if tile.is_some() { Some(tile.unwrap()) } else { None } ).collect();
+    let used_tiles: HashSet<Tile> = puzzle.iter()
+    .filter_map(|tile| if tile.is_some() {
+        Some(vec![tile.unwrap().clone(), tile.unwrap().flip()])
+    } else {
+        None
+    } )
+    .flatten()
+    .collect();
     let missing_tiles: HashSet<Tile> = tileset.difference(&used_tiles).cloned().collect();
     Ok(missing_tiles)
 }
