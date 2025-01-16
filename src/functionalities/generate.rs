@@ -26,6 +26,8 @@ pub fn generate_puzzle(n: usize, random: bool) -> Puzzle {
                 puzzle[index] = None;
             }    
         }    
+    } else {
+        puzzle[1] = None;
     }
     puzzle
 }
