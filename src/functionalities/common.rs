@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::types::domino_types::{error::DominoError, Puzzle, Tile};
+use crate::types::{error::DominoError, Puzzle, Tile};
 
 pub fn get_n(puzzle: &Puzzle) -> Result<i32, DominoError> {
     let mut tmp = (-3.0 + (1.0 + 8.0 * puzzle.len() as f32).sqrt()) / 2.0;

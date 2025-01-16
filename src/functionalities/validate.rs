@@ -1,4 +1,4 @@
-use crate::types::domino_types::{error::DominoError, Puzzle};
+use crate::types::{error::DominoError, Puzzle};
 
 use super::{common::{get_empty_positions, get_missing_tiles}, solve::solve_puzzle};
 
@@ -26,7 +26,7 @@ pub fn validate_puzzle(puzzle: &Puzzle) -> Result<bool, DominoError> {
                 }
                 new_puzzle[empty_position] = Some(*tile);
                 let new_solved_puzzle = solve_puzzle(&new_puzzle);
-                if new_solved_puzzle.is_err() {
+                if new_solved_puzzle.is_ok() {
                     return Ok(false);
                 }
             }
