@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use rand::seq::IteratorRandom;
+use rand::seq::{IteratorRandom, SliceRandom};
 
 use crate::types::{domino_types::error::DominoError, graph_types::{graph::Graph, node::Node}};
 
@@ -112,21 +112,37 @@ pub fn find_eulerian_cycle(graph: &Graph, random: bool) -> Vec<Node> {
             (self.0 == other.1 && self.1 == other.0)
         }
     }
+    let mut seed = rand::thread_rng();
     let mut circuit: Vec<Node> = Vec::new();
     let mut visited: HashSet<Arc> = HashSet::new();
-    let mut stack: Vec<Node> = vec![graph.nodes.first().unwrap().clone()];
+    let mut stack: Vec<Node> = vec![
+        if random {
+            graph.nodes.choose(&mut seed).unwrap().clone()
+        } else {
+            graph.nodes.first().unwrap().clone()
+        }
+    ];
 
     while !stack.is_empty() {
         if let Some(current_vertex) = stack.pop() {
+            // Choice of the next node
             let mut edges_iterator = graph.adjacency
             .get(&current_vertex.clone()).unwrap()
             .iter();
             let unvisited_edge_index = if random {
-                let mut seed = rand::thread_rng();
-                edges_iterator.enumerate().choose(&mut seed).map(|(index, _)| index)
+                edges_iterator
+                .filter(|arc| !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())))
+                .enumerate()
+                .choose(&mut seed)
+                .map(|(index, _)| index)
             } else {
-                edges_iterator.position(|arc| !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())))
+                edges_iterator
+                .position(|arc| 
+                    !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+                    !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
+                )
             };
+            // Process unvisided edges of the next node 
             if let Some(unvisited_index) = unvisited_edge_index {
                 stack.push(current_vertex.clone());
                 let next_vertex = graph.adjacency

@@ -6,7 +6,7 @@ mod tests {
     fn generate() {     
         for n in 3..=12 {
             let puzzle = generate_puzzle(n, false);
-            println!("{puzzle:?}");
+            println!("{n}\n{puzzle:#?}");
             if n % 2 == 0 {
                 assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
             } else {
