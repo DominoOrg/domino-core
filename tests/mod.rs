@@ -15,12 +15,14 @@ mod tests {
     }
 
     #[test]
-    fn solve() {
-        let puzzle = generate_puzzle(3, true);
-        println!("{puzzle:?}");
-        let solution = solve_puzzle(&puzzle).unwrap();
-        println!("{puzzle:?}\n{solution:?}");
-        assert_eq!(solution.len(), puzzle.len());
+    fn planar_solve() {
+        for n in 2..=3 {
+            let puzzle = generate_puzzle(n, false);
+            println!("{puzzle:?}");
+            let solution = solve_puzzle(&puzzle).unwrap();
+            println!("{puzzle:?}\n{solution:?}");
+            assert_eq!(solution.len(), puzzle.len());                
+        }
     }
 
 }
