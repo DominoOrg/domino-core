@@ -19,7 +19,7 @@ pub fn get_n(puzzle: &Puzzle) -> Result<i32, DominoError> {
     if tmp - tmp.floor() == 0.0 {
         return Ok(tmp as i32);
     }
-    Err(DominoError::InvalidPuzzle("Puzzle lenght is invalid".to_string()))
+    Err(DominoError::InvalidLength)
 }
 
 pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> {
@@ -28,6 +28,11 @@ pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> 
         ((0)..(n + 1)).map(|j| Tile(i, j)).collect::<Vec<Tile>>()
     })
     .flatten()
+    .filter(|tile| if n % 2 == 0 {
+        true
+    } else {
+        (tile.0 - tile.1).abs() as i32 != ((n as i32 + 1)/ 2)
+    })
     .collect();
     let used_tiles: HashSet<Tile> = puzzle.iter()
     .filter_map(|tile| if tile.is_some() {

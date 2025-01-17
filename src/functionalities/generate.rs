@@ -1,5 +1,5 @@
 use rand::Rng;
-use crate::types::{Puzzle, Solution, Tile, graph_types::graph::Graph};
+use crate::types::{graph_types::graph::Graph, Puzzle, Solution, Tile};
 
 use super::graph_common::find_eulerian_cycle;
 

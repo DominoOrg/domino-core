@@ -10,7 +10,7 @@ pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
         let solution = new_puzzle.into_iter().map(|tile| tile.unwrap()).collect();
         return Ok(solution);
     } else {
-        return Err(DominoError::InvalidPuzzle("Puzzle is not solvable".to_string()));
+        return Err(DominoError::UnsolvablePuzzle);
     }
 }
 
@@ -37,6 +37,29 @@ fn solve_puzzle_r(puzzle: &mut Puzzle, missing_tiles: &HashSet<Tile>, current_po
                 puzzle[(current_position + 1) % puzzle.len()].is_none() ||
                 puzzle[(current_position + 1) % puzzle.len()].unwrap().0 == element.1
             ) {
+            // Place the element
+            puzzle[current_position] = Some(element);
+            
+            // Recurse with the next index
+            if solve_puzzle_r(puzzle, missing_tiles, current_position + 1) {
+                return true;
+            }
+            
+            // Backtrack: if the recursion didn't lead to a solution, remove this element
+            puzzle[current_position] = None;
+        }
+
+        element.flip();
+        // Check if the rotated version of the same tile can be used (not already in the puzzle and adjacent to its neighbors)
+        if puzzle.iter().all(|&slot| slot != Some(element)) &&
+        (
+            puzzle[(puzzle.len() + current_position - 1) % puzzle.len()].is_none() ||
+            puzzle[(puzzle.len() + current_position - 1) % puzzle.len()].unwrap().1 == element.0
+        ) &&
+        (
+            puzzle[(current_position + 1) % puzzle.len()].is_none() ||
+            puzzle[(current_position + 1) % puzzle.len()].unwrap().0 == element.1
+        ) {
             // Place the element
             puzzle[current_position] = Some(element);
             

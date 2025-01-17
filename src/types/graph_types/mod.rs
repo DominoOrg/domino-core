@@ -1,7 +1,6 @@
-use super::graph_types::node::Node;
-
-pub(crate) mod node;
 pub(crate) mod graph;
+
+pub(crate) type Node = i32;
 
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub(crate) struct Arc {

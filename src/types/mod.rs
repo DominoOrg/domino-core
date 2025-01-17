@@ -25,4 +25,4 @@ impl Tile {
 
 pub type Solution = Vec<Tile>;
 
-pub type Puzzle = Vec<Option<Tile>>;
+pub type Puzzle = Vec<Option<crate::types::Tile>>;

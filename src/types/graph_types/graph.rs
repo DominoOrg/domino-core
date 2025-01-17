@@ -11,11 +11,14 @@ pub(crate) struct Graph {
 impl Graph {
     pub fn regular(n: usize) -> Self {
         Graph {
-            nodes: (0..(n+1) as i32).into_iter().map(|node| Node::Regular(node)).collect::<Vec<Node>>(),
+            nodes: (0..(n+1) as i32).collect(),
             adjacency: (0..(n+1) as i32)
                 .map(|source_node| {
                     let edges = (0..(n+1)).filter_map(|destination_node| {
-                        if n % 2 == 0 || (source_node as f32 - destination_node as f32).abs() as i32 != ((n as i32 + 1)/ 2) {
+                        if n % 2 == 0 ||
+                        (
+                            source_node as f32 - destination_node as f32).abs() as i32 != ((n as i32 + 1)/ 2
+                        ) {
                             Some(Arc {
                                 source: source_node.into(),
                                 destination: (destination_node as i32).into(),
@@ -26,7 +29,7 @@ impl Graph {
                         }
                     })
                     .collect::<Vec<Arc>>();
-                    (Node::Regular(source_node), edges)
+                    (source_node, edges)
                 })
                 .collect()
         }

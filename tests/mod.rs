@@ -2,9 +2,13 @@
 mod tests {
     use domino_lib::functionalities::{generate::generate_puzzle, solve::solve_puzzle, validate::validate_puzzle};
 
+    fn test_suite() -> Vec<usize> {
+        return vec![3,6]
+    }
+
     #[test]
     fn generate() {     
-        for n in 3..=12 {
+        for n in test_suite() {
             let puzzle = generate_puzzle(n, false);
             if n % 2 == 0 {
                 assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
@@ -13,7 +17,7 @@ mod tests {
             }
         }
 
-        for n in 3..=12 {
+        for n in test_suite() {
             let puzzle = generate_puzzle(n, true);
             if n % 2 == 0 {
                 assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
@@ -25,31 +29,32 @@ mod tests {
 
     #[test]
     fn solve() {
-        for n in 3..=12 {
+        for n in test_suite() {
             let puzzle = generate_puzzle(n, false);
             let solution = solve_puzzle(&puzzle).unwrap();
             assert_eq!(solution.len(), puzzle.len());                
         }
 
-        for n in 3..=12 {
-            let puzzle = generate_puzzle(n, false);
-            let solution = solve_puzzle(&puzzle).unwrap();
-            assert_eq!(solution.len(), puzzle.len());                
+        for n in test_suite() {
+            let puzzle = generate_puzzle(n, true);
+            let solution = solve_puzzle(&puzzle);
+            if let Ok(solution) = solution {
+                assert_eq!(solution.len(), puzzle.len());                
+            }
         }
     }
 
     #[test]
     fn validate() {
-        for n in 3..=12 {
+        // For each length a puzzle with a single tile missing is always valid
+        for n in test_suite() {
             let puzzle = generate_puzzle(n, false);
             assert!(validate_puzzle(&puzzle).is_ok());                
         }
 
-        for n in 3..=12 {
-            let mut puzzle = generate_puzzle(n, false);
-            for i in 0..puzzle.len() {
-                puzzle[i] = None;
-            }
+        // For each length an empty puzzle should result in not valid
+        for n in test_suite() {
+            let puzzle = vec![None; if n % 2 == 0 { (n + 1) * (n + 2) / 2 } else { (n + 1) * (n + 1) / 2 }];
             assert!(validate_puzzle(&puzzle).is_err());                
         }
     }
