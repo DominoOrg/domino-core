@@ -3,12 +3,9 @@ use crate::types::{error::DominoError, Puzzle};
 use super::{common::{get_empty_positions, get_missing_tiles}, solve::solve_puzzle};
 
 pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
-    println!("Puzzle: {:?}\n", puzzle);
     if let Ok(solved_puzzle) = solve_puzzle(puzzle) {
-        println!("Solved puzzle: {:?}\n", solved_puzzle);
         let empty_positions: Vec<usize> = get_empty_positions(&puzzle)?;
         let missing_tiles = get_missing_tiles(&puzzle)?;
-        println!("Missing tiles: {:?}\n", missing_tiles);
         
         // If the puzzle had a single tile missing and the tile remaining fits the only hole in the puzzle
         // it is already valid
@@ -49,9 +46,7 @@ pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
                     }                        
                 }
                 new_puzzle[empty_position] = Some(*tile);
-                println!("New puzzle: {:?}\n", new_puzzle);
                 let new_solved_puzzle = solve_puzzle(&new_puzzle);
-                println!("Newly solved puzzle: {:?}\n", new_solved_puzzle);
 
                 // If the new version of the puzzle with an additional filled space is not solvable
                 // then skip to the next variation trying new combinations
