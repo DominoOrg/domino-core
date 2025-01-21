@@ -1,8 +1,11 @@
+use std::time::Instant;
+
 use crate::types::{error::DominoError, Puzzle};
 
 use super::{common::{get_empty_positions, get_missing_tiles}, solve::solve_puzzle};
 
 pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
+    let start_instant = Instant::now();
     if let Ok(solved_puzzle) = solve_puzzle(puzzle) {
         let empty_positions: Vec<usize> = get_empty_positions(&puzzle)?;
         let missing_tiles = get_missing_tiles(&puzzle)?;
@@ -14,12 +17,12 @@ pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
             let missing_tile = missing_tiles.iter().next().unwrap();
             let empty_position = empty_positions[0];
             if (
-                    (empty_position == 0 || puzzle[empty_position-1].unwrap().1 == missing_tile.0) &&
-                    (empty_position == puzzle.len() - 1 || puzzle[empty_position+1].unwrap().0 == missing_tile.1)
+                    ((empty_position == 0 && puzzle[puzzle.len() - 1].unwrap().1 == missing_tile.0)|| puzzle[empty_position-1].unwrap().1 == missing_tile.0) &&
+                    ((empty_position == puzzle.len() - 1 && puzzle[0].unwrap().0 == missing_tile.1) || puzzle[empty_position+1].unwrap().0 == missing_tile.1)
                 ) ||
                 (
-                    (empty_position == 0 || puzzle[empty_position-1].unwrap().0 == missing_tile.1) &&
-                    (empty_position == puzzle.len() - 1 || puzzle[empty_position+1].unwrap().1 == missing_tile.0)
+                    ((empty_position == 0 && puzzle[puzzle.len() - 1].unwrap().1 == missing_tile.1) || puzzle[empty_position-1].unwrap().0 == missing_tile.1) &&
+                    ((empty_position == puzzle.len() - 1 && puzzle[0].unwrap().0 == missing_tile.0) || puzzle[empty_position+1].unwrap().1 == missing_tile.0)
                 )
             {
                 return Ok(());
@@ -47,7 +50,10 @@ pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
                 }
                 new_puzzle[empty_position] = Some(*tile);
                 let new_solved_puzzle = solve_puzzle(&new_puzzle);
-
+                // let duration = start_instant.elapsed();
+                // if duration.as_millis() > 100000 {
+                //     return Err(DominoError::Timeout);
+                // }
                 // If the new version of the puzzle with an additional filled space is not solvable
                 // then skip to the next variation trying new combinations
                 if new_solved_puzzle.is_err() {
