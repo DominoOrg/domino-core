@@ -3,7 +3,7 @@ use crate::types::{graph_types::graph::Graph, Puzzle, Solution, Tile};
 
 use super::graph_common::find_eulerian_cycle;
 
-pub fn generate_puzzle(n: usize, random: bool) -> Puzzle {
+pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzle {
     let graph = Graph::regular(n);
     let eulerian_cycle = find_eulerian_cycle(&graph, random);
     let solution: Solution = eulerian_cycle
@@ -17,7 +17,7 @@ pub fn generate_puzzle(n: usize, random: bool) -> Puzzle {
     if random {
         let mut seed = rand::thread_rng();        
         if puzzle.len() > 0 {
-            let removals = seed.gen_range(1..=(puzzle.len() - ((2 * n) + 1)));            
+            let removals = seed.gen_range(minimum_removals..=(puzzle.len() - ((2 * n) + 1)));            
             for _ in 0..removals {
                 let mut index = seed.gen_range(0..puzzle.len());
                 while puzzle[index].is_none() {
