@@ -9,7 +9,7 @@ mod tests {
     #[test]
     fn generate() {     
         for n in test_suite() {
-            let puzzle = generate_puzzle(n, false);
+            let puzzle = generate_puzzle(n, 1, false);
             if n % 2 == 0 {
                 assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
             } else {
@@ -18,7 +18,7 @@ mod tests {
         }
 
         for n in test_suite() {
-            let puzzle = generate_puzzle(n, true);
+            let puzzle = generate_puzzle(n, 1, true);
             if n % 2 == 0 {
                 assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
             } else {
@@ -30,13 +30,13 @@ mod tests {
     #[test]
     fn solve() {
         for n in test_suite() {
-            let puzzle = generate_puzzle(n, false);
+            let puzzle = generate_puzzle(n, 1, false);
             let solution = solve_puzzle(&puzzle).unwrap();
             assert_eq!(solution.len(), puzzle.len());                
         }
 
         for n in test_suite() {
-            let puzzle = generate_puzzle(n, true);
+            let puzzle = generate_puzzle(n, 1, true);
             let solution = solve_puzzle(&puzzle);
             if let Ok(solution) = solution {
                 assert_eq!(solution.len(), puzzle.len());                
@@ -48,7 +48,7 @@ mod tests {
     fn validate() {
         // For each length a puzzle with a single tile missing is always valid
         for n in test_suite() {
-            let puzzle = generate_puzzle(n, false);
+            let puzzle = generate_puzzle(n, 1, false);
             assert!(validate_puzzle(&puzzle).is_ok());                
         }
 
@@ -98,7 +98,7 @@ mod tests {
                         Some(Tile(5,0))
                     ]
                 } else {
-                    generate_puzzle(3, false)
+                    generate_puzzle(3, 1, false)
                 };
                 match desired_complexity {
                     1 => {
