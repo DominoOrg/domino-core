@@ -5,7 +5,6 @@ use crate::types::{error::DominoError, Puzzle};
 use super::{common::{get_empty_positions, get_missing_tiles}, solve::solve_puzzle};
 
 pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
-    let start_instant = Instant::now();
     if let Ok(solved_puzzle) = solve_puzzle(puzzle) {
         let empty_positions: Vec<usize> = get_empty_positions(&puzzle)?;
         let missing_tiles = get_missing_tiles(&puzzle)?;
@@ -17,12 +16,12 @@ pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
             let missing_tile = missing_tiles.iter().next().unwrap();
             let empty_position = empty_positions[0];
             if (
-                    ((empty_position == 0 && puzzle[puzzle.len() - 1].unwrap().1 == missing_tile.0)|| puzzle[empty_position-1].unwrap().1 == missing_tile.0) &&
-                    ((empty_position == puzzle.len() - 1 && puzzle[0].unwrap().0 == missing_tile.1) || puzzle[empty_position+1].unwrap().0 == missing_tile.1)
+                    ((empty_position == 0 && puzzle[puzzle.len() - 1].unwrap().1 == missing_tile.0) || (empty_position > 0 && puzzle[empty_position-1].unwrap().1 == missing_tile.0)) &&
+                    ((empty_position == puzzle.len() - 1 && puzzle[0].unwrap().0 == missing_tile.1) || (empty_position < puzzle.len() - 1 && puzzle[empty_position+1].unwrap().0 == missing_tile.1))
                 ) ||
                 (
-                    ((empty_position == 0 && puzzle[puzzle.len() - 1].unwrap().1 == missing_tile.1) || puzzle[empty_position-1].unwrap().0 == missing_tile.1) &&
-                    ((empty_position == puzzle.len() - 1 && puzzle[0].unwrap().0 == missing_tile.0) || puzzle[empty_position+1].unwrap().1 == missing_tile.0)
+                    ((empty_position == 0 && puzzle[puzzle.len() - 1].unwrap().1 == missing_tile.1) || (empty_position > 0 && puzzle[empty_position-1].unwrap().0 == missing_tile.1)) &&
+                    ((empty_position == puzzle.len() - 1 && puzzle[0].unwrap().0 == missing_tile.0) || (empty_position < puzzle.len() - 1 && puzzle[empty_position+1].unwrap().1 == missing_tile.0))
                 )
             {
                 return Ok(());
