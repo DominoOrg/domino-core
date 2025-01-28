@@ -17,8 +17,7 @@ pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzl
     if random {
         let mut seed = rand::thread_rng();        
         if puzzle.len() > 0 {
-            let removals = seed.gen_range(minimum_removals..=(puzzle.len() - ((2 * n) + 1)));            
-            for _ in 0..removals {
+            for _ in 0..minimum_removals {
                 let mut index = seed.gen_range(0..puzzle.len());
                 while puzzle[index].is_none() {
                     index = seed.gen_range(0..puzzle.len());
