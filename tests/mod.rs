@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use domino_lib::{functionalities::{classify::classify_puzzle, generate::generate_puzzle, solve::solve_puzzle, validate::validate_puzzle}, types::Tile};
+    use domino_lib::{classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, Tile};
+
+
 
     fn test_suite() -> Vec<usize> {
         return vec![3,6]

@@ -18,5 +18,3 @@ impl std::fmt::Display for DominoError {
 }
 
 impl std::error::Error for DominoError {}
-
-pub type Result<T, E = DominoError> = std::result::Result<T, E>;

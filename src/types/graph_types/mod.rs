@@ -1,9 +1,10 @@
-pub(crate) mod graph;
+mod graph;
 
-pub(crate) type Node = i32;
+pub use graph::Graph;
+pub type Node = i32;
 
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
-pub(crate) struct Arc {
+pub struct Arc {
     pub source: Node,
     pub destination: Node,
     pub position: Option<usize>

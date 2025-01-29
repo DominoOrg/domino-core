@@ -2,24 +2,28 @@
 {
     {T
         +lib
-        ++types
-        +++domino_types
-        ++++error
-        ++++tile
-        ++++puzzle
-        ++++solution
-        +++graph_types
-        ++++orientation
-        ++++direction
-        ++++arc
-        ++++graph
-        ++functionalities
-        +++generate
+        ++graphs
+        +++types
+        ++++domino_types
+        +++++error
+        +++++tile
+        +++++puzzle
+        +++++solution
+        ++++graph_types
+        +++++orientation
+        +++++direction
+        +++++arc
+        +++++graph
+        +++functionalities
+        ++++generate
+        ++++validate
+        ++++solve
+        ++++classify
+        ++++common
+        ++++graph_common
+        ++lps
+        +++execute_model
         +++validate
-        +++solve
-        +++classify
-        +++common
-        +++graph_common
     }
 }
 @endsalt

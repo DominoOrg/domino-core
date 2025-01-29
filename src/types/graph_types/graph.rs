@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-
 use super::{Arc, Node};
 
 #[derive(Debug, Default, Clone)]
-pub(crate) struct Graph {
-    pub(crate) nodes: Vec<Node>,
-    pub(crate) adjacency: HashMap<Node, Vec<Arc>>
+pub struct Graph {
+    pub nodes: Vec<Node>,
+    pub adjacency: HashMap<Node, Vec<Arc>>
 }
 
 impl Graph {

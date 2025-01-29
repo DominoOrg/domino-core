@@ -1,6 +1,4 @@
-use std::time::Instant;
-
-use crate::types::{error::DominoError, Puzzle};
+use crate::{DominoError, Puzzle};
 
 use super::{common::{get_empty_positions, get_missing_tiles}, solve::solve_puzzle};
 

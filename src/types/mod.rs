@@ -1,5 +1,8 @@
-pub mod error;
-pub(crate) mod graph_types;
+mod error;
+mod graph_types;
+
+pub use error::DominoError;
+pub use graph_types::{Node, Graph};
 
 #[derive(Debug, Clone, Copy, Hash, Eq)]
 pub struct Tile(pub i32, pub i32);
@@ -25,4 +28,4 @@ impl Tile {
 
 pub type Solution = Vec<Tile>;
 
-pub type Puzzle = Vec<Option<crate::types::Tile>>;
+pub type Puzzle = Vec<Option<Tile>>;

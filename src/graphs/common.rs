@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 
-use crate::types::{error::DominoError, Puzzle, Tile};
+use crate::{DominoError, Puzzle, Tile};
 
 pub fn get_n(puzzle: &Puzzle) -> Result<i32, DominoError> {
-    let mut tmp = (-3.0 + (1.0 + 8.0 * puzzle.len() as f32).sqrt()) / 2.0;
+    let mut tmp: f32 = (-3.0 + (1.0 as f32 + 8.0 as f32 * puzzle.len() as f32).sqrt()) / 2.0;
     if tmp - tmp.floor() == 0.0 {
         return Ok(tmp as i32);
     }
-    tmp = -1.0 + (2.0 * puzzle.len() as f32).sqrt();
+    tmp = -1.0 + (2.0 as f32 * puzzle.len() as f32).sqrt();
     if tmp - tmp.floor() == 0.0 {
         return Ok(tmp as i32);
     }
-    tmp = (-1.0 + (1.0 + 4.0 * puzzle.len() as f32).sqrt()) / 2.0;
+    tmp = (-1.0 + (1.0 as f32 + 4.0 * puzzle.len() as f32).sqrt()) / 2.0;
     if tmp - tmp.floor() == 0.0 {
         return Ok(tmp as i32);
     }

@@ -1,4 +1,4 @@
-use crate::types::Puzzle;
+use crate::Puzzle;
 
 use super::common::get_n;
 
@@ -54,7 +54,8 @@ fn max_hole_length(puzzle: &Puzzle) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{functionalities::classify::max_hole_length, types::Tile};
+    use crate::{graphs::classify::max_hole_length, Tile};
+
 
     #[test]
     fn test_hole_length() {

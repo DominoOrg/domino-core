@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::time::Instant;
-use crate::types::error::DominoError;
-use crate::types::{Puzzle, Solution, Tile};
+use crate::{DominoError, Puzzle, Solution, Tile};
+
 use super::common::get_missing_tiles;
 
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {

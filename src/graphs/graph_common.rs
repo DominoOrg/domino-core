@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use rand::seq::{IteratorRandom, SliceRandom};
 
-use crate::types::graph_types::{graph::Graph, Node};
+use crate::types::{Graph, Node};
 
 pub fn find_eulerian_cycle(graph: &Graph, random: bool) -> Vec<Node> {
     #[derive(Debug, Clone, Eq, Hash)]
