@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Puzzle;
+use crate::{graphs::get_n, DominoError, Puzzle, Tile};
 
 // Struct representing a Variable with label, tile, and position.
 #[derive(Debug, Clone)]
@@ -11,7 +11,7 @@ pub struct Variable {
 }
 
 // Struct representing the Variables collection, with HashMaps for lookup by label, tile, and position.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Variables {
     pub(super) vars: Vec<Variable>,
     pub(super) by_label: HashMap<String, Variable>,
@@ -20,13 +20,14 @@ pub struct Variables {
 }
 
 impl Variables {
-    fn new() -> Self {
-        Variables {
-            vars: Vec::new(),
-            by_label: HashMap::new(),
-            by_tile: HashMap::new(),
-            by_position: HashMap::new(),
+    pub fn new(combinations: Vec<Variable>) -> Self {
+        let mut vars = Variables::default();
+
+        for el in combinations {
+            vars.insert(el);
         }
+    
+        vars
     }
 
     fn insert(&mut self, variable: Variable) {
@@ -46,12 +47,29 @@ impl Variables {
     }
 }
 
+
+// Main function to create variables based on N and random flag.
+pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
+    let n = get_n(puzzle)? as usize;
+    let tileset = create_tileset(n).into_iter()
+    .enumerate()
+    .filter(|(_, tile)| {
+        let tile = Tile(tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
+        !puzzle.iter().any(|&puzzle_tile| puzzle_tile == Some(tile) || puzzle_tile == Some(tile.flip()))
+    })
+    .collect();
+    let mapped_variables = generate_combinations(tileset, n)
+    .into_iter()
+    .filter(|var| puzzle.get(var.position).unwrap().is_none())
+    .collect();
+    Ok(Variables::new(mapped_variables))
+}
+
 // Function to create a tileset based on N
-pub fn create_tileset(puzzle: &Puzzle, n: usize) -> Vec<(usize, usize)> {
+pub fn create_tileset(n: usize) -> Vec<(usize, usize)> {
     let length: usize = (n + 1).pow(2);
     let mut tileset: Vec<(usize, usize)> = (0..length)
         .map(|i| (i / (n + 1), i % (n + 1)))
-        .filter(|var| puzzle.contains(&Some((var.0 as i32, var.1 as i32).into())))
         .collect::<Vec<(usize, usize)>>();
 
     if n % 2 == 1 {
@@ -64,28 +82,28 @@ pub fn create_tileset(puzzle: &Puzzle, n: usize) -> Vec<(usize, usize)> {
 }
 
 // Function to generate combinations of tiles and positions into Variables.
-fn generate_combinations(puzzle: &Puzzle, tileset: Vec<(usize, usize)>, n: usize) -> Vec<Variable> {
+fn generate_combinations(tileset: Vec<(usize, (usize, usize))>, n: usize) -> Vec<Variable> {
     let sequence_length: usize = if n % 2 == 0 {
         (n + 1) * (n + 2) / 2
     } else {
         (n + 1).pow(2) / 2
     };
-    let tileset_digits = ((tileset.len().saturating_sub(1)) as f32).log10().floor() as usize + 1;
+    let tileset_length = sequence_length * 2;
+    let tileset_digits = ((tileset_length.saturating_sub(1)) as f32).log10().floor() as usize + 1;
     let sequence_digits = ((sequence_length.saturating_sub(1)) as f32).log10().floor() as usize + 1;
-    let positions: Vec<usize> = (0..sequence_length).filter(|position| puzzle[*position].is_some()).collect::<Vec<usize>>();
+    let positions: Vec<usize> = (0..sequence_length).collect::<Vec<usize>>();
     tileset
         .iter()
-        .enumerate()
-        .flat_map(|(tile_index, &tile)| {
+        .flat_map(|(tile_index, tile)| {
             positions.iter().map(move |&position| {
                 let label: String = format!(
                     "x{}{}",
-                    format_on_n_digits(tile_index as usize, tileset_digits),
+                    format_on_n_digits(*tile_index, tileset_digits),
                     format_on_n_digits(position, sequence_digits)
                 );
                 let variable = Variable {
                     label,
-                    tile,
+                    tile: *tile,
                     position,
                 };
                 variable
@@ -100,20 +118,3 @@ fn format_on_n_digits(number: usize, digits: usize) -> String {
     return format!("{:0width$}", number, width = digits);
 }
 
-// Function to initialize Variables with combinations, filtered by randomness.
-fn init_variables(combinations: Vec<Variable>) -> Variables {
-    let mut vars = Variables::new();
-
-    for el in combinations {
-        vars.insert(el);
-    }
-
-    vars
-}
-
-// Main function to create variables based on N and random flag.
-pub fn variables(puzzle: &Puzzle, n: usize) -> Variables {
-    let tileset = create_tileset(puzzle, n);
-    let mapped_variables = generate_combinations(puzzle, tileset, n);
-    init_variables(mapped_variables)
-}

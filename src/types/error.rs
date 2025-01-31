@@ -3,7 +3,9 @@ pub enum DominoError {
     InvalidLength,
     UnsolvablePuzzle,
     NotValidPuzzle,
-    Timeout
+    Timeout,
+    ModelGenerationError(String),
+    ModelError(String),
 }
 
 impl std::fmt::Display for DominoError {
@@ -12,7 +14,9 @@ impl std::fmt::Display for DominoError {
             Self::InvalidLength => write!(f, "The puzzle length is not correct"),
             Self::UnsolvablePuzzle => write!(f, "The puzzle has no solutions"),
             Self::NotValidPuzzle => write!(f, "The puzzle is not valid/unique, it has multiple solutions"),
-            Self::Timeout => write!(f, "The puzzle took too long to solve")
+            Self::Timeout => write!(f, "The puzzle took too long to solve"),
+            Self::ModelGenerationError(message) => write!(f, "{}", message),
+            Self::ModelError(message) => write!(f, "{}", message),
         }
     }
 }

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use good_lp::{default_solver, variable, Constraint, Expression, ProblemVariables, ResolutionError, Solution, SolverModel, Variable, VariableDefinition};
+use good_lp::{default_solver, variable, Constraint, Expression, ProblemVariables, ResolutionError, SolverModel, Variable, VariableDefinition};
 
-use super::{parser::{BoundType, ObjectiveType}, ModelParser};
+use super::{parser::{BoundType, ObjectiveType}, translator::ResultTranslator, ModelParser};
 
 
 pub struct Adapter {
@@ -20,10 +20,10 @@ impl Adapter {
     Adapter { vars: ProblemVariables::new(), variable_map: HashMap::new(), var_names: HashMap::new(), objective_direction: ObjectiveType::Minimize, objective: Expression::from_other_affine(0.0), bounds: Vec::new() }
   }
 
-  pub fn adapt(mut self, parser: &ModelParser) -> Result<HashMap<String, f64>, ResolutionError> {
-    self = self.adapt_variables(parser)
-    .adapt_objective(parser)
-    .adapt_bounds(parser);
+  pub fn adapt(mut self, parser: &ModelParser) -> Result<ResultTranslator, ResolutionError> {
+    self.adapt_variables(parser);
+    self.adapt_objective(parser);
+    self.adapt_bounds(parser);
     let mut problem = if self.objective_direction == ObjectiveType::Minimize {
       self.vars.minimise(self.objective.clone())
     } else {
@@ -32,33 +32,19 @@ impl Adapter {
     self.bounds.into_iter().for_each(|constraint| {
       problem.add_constraint(constraint);
     });
-    let model = problem.solve();
-    if let Ok(solution) = model {
-      let mut map = HashMap::new();
-      self.variable_map.values().map(|(_var_def, var)| {
-        let name = self.var_names.get(var).unwrap();
-        (name, var)
-      }).for_each(|(name, var)| {
-        let value = solution.value(*var);
-        map.insert(name.clone(), value);
-      });
-      Ok(map)  
-    } else {
-      Err(model.err().unwrap())
-    }
+    problem.solve().map(|solution| ResultTranslator::new(self.objective, self.var_names, self.variable_map.clone(), solution))
   }
 
-  fn adapt_variables(mut self, parser: &ModelParser) -> Self {
+  fn adapt_variables(&mut self, parser: &ModelParser) {
     for variable_name in parser.binary_variables.clone() {
       let def_variable = variable().binary().name(variable_name.clone());
       let variable = self.vars.add(def_variable.clone());
       self.variable_map.insert(variable_name.clone(), (def_variable, variable));
       self.var_names.insert(variable, variable_name);
     }
-    self
   }
 
-  fn adapt_objective(mut self, parser: &ModelParser) -> Self {
+  fn adapt_objective(&mut self, parser: &ModelParser) {
     let objective = parser.objective.clone();
     self.objective_direction = objective.objective_type;
     self.objective = Expression::from_other_affine(0.0);
@@ -68,10 +54,9 @@ impl Adapter {
       }
     }
     self.objective += objective.terms.1;
-    self
   }
 
-  fn adapt_bounds(mut self, parser: &ModelParser) -> Self {
+  fn adapt_bounds(&mut self, parser: &ModelParser) {
     for bound in &parser.bounds {
       let mut lhs_expr = Expression::from_other_affine(0.0);
       bound.lhs.0.iter().for_each(|(coef, var_name)| {
@@ -101,6 +86,5 @@ impl Adapter {
       };
       self.bounds.push(constraint);
     }
-    self
   }
 }

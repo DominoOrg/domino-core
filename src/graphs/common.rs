@@ -3,6 +3,9 @@ use std::collections::HashSet;
 use crate::{DominoError, Puzzle, Tile};
 
 pub fn get_n(puzzle: &Puzzle) -> Result<i32, DominoError> {
+    if puzzle.len() == 0 {
+        return Err(DominoError::InvalidLength);
+    }
     let mut tmp: f32 = (-3.0 + (1.0 as f32 + 8.0 as f32 * puzzle.len() as f32).sqrt()) / 2.0;
     if tmp - tmp.floor() == 0.0 {
         return Ok(tmp as i32);

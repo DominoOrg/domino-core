@@ -1,4 +1,6 @@
-use super::{helpers::{collect_labels, create_bound_string, fetch_adjacent_variables}, variables::Variables, stringify_variables, Puzzle};
+use crate::{graphs::get_n, Tile};
+
+use super::{helpers::{collect_labels, create_bound_string}, stringify_variables, variables::{Variable, Variables}, Puzzle};
 
 // Function to ensure each tile is used exactly once
 pub fn each_tile_used_once_bound(vars: &Variables) -> Vec<String> {
@@ -40,24 +42,70 @@ pub fn each_position_filled_bound(vars: &Variables) -> Vec<String> {
 }
 
 // Function to ensure adjacency of next tiles
-pub fn next_adjacent_bound(puzzle: &Puzzle, vars: &Variables, sequence_length: usize) -> Vec<String> {
+pub fn next_adjacent_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
+    let n = get_n(puzzle).expect("Puzzle does not have a valid length") as usize;
 
-    for variable in vars.by_label.values() {
-        if puzzle[(variable.position + 1)%puzzle.len()].is_none() {
+    for position in 0..puzzle.len() {
+        if puzzle[position].is_some() {
             continue;
         }
+        if let Some(tile) = puzzle[(position + 1) % puzzle.len()] {
+            
+            if let Some(bound) = next_enforced_bound(vars, tile, position) {
+                prob_bounds.push(bound);                
+            }
 
-        let adjacent_vars =
-            fetch_adjacent_variables(vars, variable.tile, variable.position, 1, sequence_length);
+        } else {
 
-        let adjacent_vars_str = stringify_variables!(adjacent_vars, " - ");
-
-        let bound = format!("{} - {} <= 0", variable.label, adjacent_vars_str);
-        
-        prob_bounds.push(bound);
+            for number in 0..=n {
+                if let Some(bound) = next_bound(puzzle, vars, position, number) {
+                    prob_bounds.push(bound);
+                }
+            }
+        }
     }
 
     prob_bounds.push(String::new());
     prob_bounds
+}
+
+fn next_enforced_bound (vars: &Variables, tile: Tile, position: usize) -> Option<String> {
+    let number = tile.0 as usize;
+    let condition = |var: &Variable| var.tile.1 == number.try_into().unwrap();
+    let left_member_variables: Vec<String> = variables_at_position_with_condition(vars, position, condition);
+    if left_member_variables.len() == 0 {
+        return None;
+    }
+    let bound = 
+        format!("{} = 1",
+            stringify_variables!(left_member_variables, " + "),
+        );
+    Some(bound)
+}
+
+fn next_bound(puzzle: &Puzzle, vars: &Variables, position: usize, number: usize) -> Option<String> {
+    let condition = |var: &Variable| var.tile.1 == number.try_into().unwrap();
+    let left_member_variables: Vec<String> = variables_at_position_with_condition(vars, position, condition);
+    let next_position = (position + 1) % puzzle.len();
+    let condition = |var: &Variable| var.tile.0 == number.try_into().unwrap();
+    let right_member_variables: Vec<String> = variables_at_position_with_condition(vars, next_position, condition);
+    if left_member_variables.len() == 0 {
+        return None;
+    }
+    let bound = 
+        format!("{} - {} = 0",
+            stringify_variables!(left_member_variables, " + "),
+            stringify_variables!(right_member_variables, " - ")
+        );
+    Some(bound)
+}
+
+fn variables_at_position_with_condition(vars: &Variables, position: usize, condition: impl Fn(&Variable) -> bool) -> Vec<String> {
+    vars.clone().by_position
+    .get(&position).unwrap_or(&vec![])
+    .clone().into_iter()
+    .filter(|var| condition(var))
+    .map(|var| var.label)
+    .collect()
 }

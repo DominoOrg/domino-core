@@ -1,15 +1,24 @@
 mod parser;
 mod adapter;
-
-use std::collections::HashMap;
+mod translator;
 
 use adapter::Adapter;
+use good_lp::ResolutionError;
 use parser::ModelParser;
+pub use translator::ResultTranslator;
 
-pub fn execute(model: String) -> Result<HashMap<String, f64>, String> {
-  let mut parser = ModelParser::new();
-  parser.parse(&model);
-  let adapter = Adapter::new();
-  let result = Adapter::adapt(adapter, &parser);
-  result.map_err(|err| err.to_string())
+pub struct Model {
 }
+
+impl Model {
+
+  pub fn execute(model: String) -> Result<ResultTranslator, ResolutionError> {
+    let mut parser = ModelParser::new();
+    parser.parse(&model);
+    let adapter = Adapter::new();
+    let solved_problem = Adapter::adapt(adapter, &parser);
+    solved_problem
+  }
+
+}
+
