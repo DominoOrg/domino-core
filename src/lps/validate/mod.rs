@@ -35,5 +35,12 @@ mod tests {
         puzzle = vec![Some((0,0).into()), Some((0,1).into()), Some((1,1).into()), Some((1,2).into()), Some((2,2).into()), None, None, None];
         solution = vec![(0,0).into(), (0,1).into(), (1,1).into(), (1,2).into(), (2,2).into(), (2,3).into(), (3,3).into(), (3,0).into()];
         assert!(validate(&puzzle, &solution).is_ok());
+        puzzle = vec![None, Some((0,1).into()), None, Some((1,2).into()), Some((2,2).into()), None, None, None];
+        solution = vec![(0,0).into(), (0,1).into(), (1,1).into(), (1,2).into(), (2,2).into(), (2,3).into(), (3,3).into(), (3,0).into()];
+        assert!(validate(&puzzle, &solution).is_ok());
+        puzzle = vec![None; 8];
+        solution = vec![(0,0).into(), (0,1).into(), (1,1).into(), (1,2).into(), (2,2).into(), (2,3).into(), (3,3).into(), (3,0).into()];
+        assert!(validate(&puzzle, &solution).is_err());
     }
+
 }
