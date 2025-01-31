@@ -68,6 +68,5 @@ pub fn compute_model(puzzle: &Puzzle, solution: &Solution) -> Result<String, Dom
         model.push_str(format!(" {}\n", variable).as_str());
     }
     model.push_str("End");
-    println!("Model: {}", model);
     return Ok(model);
 }

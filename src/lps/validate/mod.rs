@@ -5,7 +5,6 @@ mod model;
 
 pub fn validate(puzzle: &Puzzle, solution: &Solution) -> Result<(), DominoError> {
     let string_model = compute_model(puzzle, solution)?;
-    // println!("Model: {}", string_model);
     let solver_result = Model::execute(string_model);
     let objective_value = solver_result.map(|translator| translator.get_objective());
     let missing_tiles = puzzle.iter()

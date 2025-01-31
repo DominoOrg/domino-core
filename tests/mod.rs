@@ -122,7 +122,6 @@ mod tests {
                         for i in 0..(max_len as f32 * threshold2).ceil() as usize {
                             puzzle[i] = None;
                         }
-                        println!("{puzzle:?}");
                         let complexity = classify_puzzle(&puzzle);
                         let valid_result = validate_puzzle(&puzzle);
                         assert!(valid_result.is_ok());
