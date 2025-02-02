@@ -4,14 +4,12 @@ use super::common::get_n;
 
 pub fn classify_puzzle(puzzle: &Puzzle) -> usize {
     let n = get_n(puzzle).expect("Puzzle does not have a valid length");
-    let max_hole = 2 * n + 1;
-    let max_contigous_hole = max_hole_length(puzzle);
-    let ratio = max_contigous_hole as f32 / max_hole as f32;
-    let threshold1 = 4.0 * (1.0 / 7.0);
-    let threshold2 = threshold1 + 2.0 * (1.0 / 7.0);
-    let class = if ratio < threshold1 {
+    let l = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
+    let max_hole = (l as f32 - (n as f32 / 2.0).floor()) as usize;
+    let max_contigous_hole = max_hole_length(puzzle) as usize;
+    let class = if max_contigous_hole < (max_hole * 4) / 7 {
         1
-    } else if ratio >= threshold1 && ratio < threshold2 {
+    } else if max_contigous_hole < (max_hole * 6) / 7 {
         2
     } else {
         3
@@ -19,7 +17,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> usize {
     class
 }
 
-fn max_hole_length(puzzle: &Puzzle) -> i32 {
+fn max_hole_length(puzzle: &Puzzle) -> usize {
     let mut max_contigous_holes = 0;
     let mut current_hole = 0;
     puzzle
@@ -67,7 +65,7 @@ mod tests {
                 for j in 1..i+1 {
                     p[j] = None;                
                 }
-                assert_eq!(max_hole_length(&p), i as i32);
+                assert_eq!(max_hole_length(&p), i);
             }
         }
     }

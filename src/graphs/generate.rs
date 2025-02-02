@@ -1,4 +1,5 @@
 use rand::Rng;
+
 use crate::{types::Graph, Puzzle, Solution, Tile};
 
 use super::graph_common::find_eulerian_cycle;
@@ -14,19 +15,23 @@ pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzl
     let mut puzzle: Puzzle = solution.into_iter()
         .map(|tile| Some(tile))
         .collect();
-    if random {
-        let mut seed = rand::thread_rng();        
-        if puzzle.len() > 0 {
-            for _ in 0..=minimum_removals {
+    if !random {
+        if puzzle.len() > minimum_removals {
+            for index in 0..minimum_removals {
+                puzzle[index] = None;
+            }    
+        }    
+    } else {
+        if puzzle.len() > minimum_removals {
+            let mut seed = rand::thread_rng();
+            for _ in 0..minimum_removals {
                 let mut index = seed.gen_range(0..puzzle.len());
                 while puzzle[index].is_none() {
                     index = seed.gen_range(0..puzzle.len());
                 }
                 puzzle[index] = None;
-            }    
-        }    
-    } else {
-        puzzle[1] = None;
+            }
+        }
     }
     puzzle
 }

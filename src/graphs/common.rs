@@ -48,12 +48,3 @@ pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> 
     let missing_tiles: HashSet<Tile> = tileset.difference(&used_tiles).cloned().collect();
     Ok(missing_tiles)
 }
-
-pub fn get_empty_positions(puzzle: &Puzzle) -> Result<Vec<usize>, DominoError> {
-    let empty_positions: Vec<usize> = puzzle
-    .iter()
-    .enumerate()
-    .filter_map(|(index, tile)| if tile.is_none() { Some(index) } else { None })
-    .collect();
-    Ok(empty_positions)
-}
