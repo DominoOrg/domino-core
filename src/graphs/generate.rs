@@ -19,8 +19,8 @@ pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzl
         if puzzle.len() > minimum_removals {
             for index in 0..minimum_removals {
                 puzzle[index] = None;
-            }    
-        }    
+            }
+        }
     } else {
         if puzzle.len() > minimum_removals {
             let mut seed = rand::thread_rng();

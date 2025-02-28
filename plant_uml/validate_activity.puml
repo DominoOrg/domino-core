@@ -1,38 +1,53 @@
 @startuml validate_activity
 start
 :The user submits a puzzle to be validated;
-:The puzzle gets solved;
-if (Was the puzzle solvable?) then (yes)
-if (The puzzle is not well formed?) then (yes)
+:The solution is computed using the solution activity;
+if (The puzzle was solvable?) then (yes)
+  :An lp model is generated in which
+  the objective is the sum of the variables
+  corresponding to the tiles in the solution;
+  :The model is executed;
+  if (The model objective has the value
+   of the number of tiles in the solution?) then (The puzzle is valid)
+  else (The puzzle is not valid)
     end
+  endif
+else (The puzzle is not valid)
+  end
 endif
-:Collect the positions of the missinig tiles into 'positions';
-:Collect all the missing tiles into 'missing_tiles';
-:A current 'is_valid' variable gets initialized to true;
-repeat
-:The tile at the current position gets tested;
-repeat
-:The current missing tile tries to be inserted in the current position to be tested;
-if (the tile gets inserted?) is (yes) then
-    if (the puzzle is not solvable?) is (yes) then
-        :'is_valid' gets set to false;
-    endif
-endif
-if ('is_valid' is false?) then
-    break
-endif
-repeat while (each missing tile has been tried?) is (no) not (yes)
-if ('is_valid' is false?) then
-    break
-endif
-repeat while (each position has been tested?) is (no) not (yes)
-if ('is_valid' is true?) then
-    :The puzzle is valid;
-else
-    :The puzzle is not valid;
-endif
-else (no)
-    :The puzzle is not valid;
-endif
+'OLD WORKING VERSION (SLOW METHOD)
+' :The puzzle gets solved;
+' if (Was the puzzle solvable?) then (yes)
+' if (The puzzle is not well formed?) then (yes)
+'     end
+' endif
+' :Collect the positions of the missinig tiles into 'positions';
+' :Collect all the missing tiles into 'missing_tiles';
+' :A current 'is_valid' variable gets initialized to true;
+' repeat
+' :The tile at the current position gets tested;
+' repeat
+' :The current missing tile tries to be inserted in the current position to be tested;
+' if (the tile gets inserted?) is (yes) then
+'     if (the puzzle is not solvable?) is (yes) then
+'         :'is_valid' gets set to false;
+'     endif
+' endif
+' if ('is_valid' is false?) then
+'     break
+' endif
+' repeat while (each missing tile has been tried?) is (no) not (yes)
+' if ('is_valid' is false?) then
+'     break
+' endif
+' repeat while (each position has been tested?) is (no) not (yes)
+' if ('is_valid' is true?) then
+'     :The puzzle is valid;
+' else
+'     :The puzzle is not valid;
+' endif
+' else (no)
+'     :The puzzle is not valid;
+' endif
 end
 @enduml

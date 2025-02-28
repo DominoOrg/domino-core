@@ -1,29 +1,37 @@
 @startsalt lib_structure
 {
     {T
-        +lib
+        +domino_lib
         ++graphs
-        +++types
-        ++++domino_types
-        +++++error
-        +++++tile
-        +++++puzzle
-        +++++solution
-        ++++graph_types
-        +++++orientation
-        +++++direction
-        +++++arc
-        +++++graph
-        +++functionalities
-        ++++generate
-        ++++validate
-        ++++solve
-        ++++classify
-        ++++common
-        ++++graph_common
-        ++lps
-        +++execute_model
+        +++generate
+        +++generate_valid
         +++validate
+        +++solve
+        +++classify
+        +++common
+        +++graph_common
+        ++lps
+        +++mod
+        +++execute_model
+        ++++adapter
+        ++++mod
+        ++++parser
+        ++++translator
+        +++validate
+        ++++model
+        +++++bounds
+        +++++helpers
+        +++++mod
+        +++++variables
+        ++++mod
+        ++types
+        +++graph_types
+        ++++graph
+        ++++mod
+        +++error
+        +++mod
+        ++lib
+        ++tests
     }
 }
 @endsalt
