@@ -17,7 +17,7 @@ repeat
     if (The number of removed tiles is equal to the length of the solution?) is (yes) then
       :A random position gets choosen;
     else (no)
-      :A position adjacent to a removed one is choosen;
+      :A position adjacent to the right of an existing tile is choosen;
     endif
     :The tile at the choosen position gets reinserted;
     :The removed tiles vector is updated;
