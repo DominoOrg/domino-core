@@ -41,3 +41,50 @@ fn generate_puzzle(solution: Solution) -> Box<dyn Fn(usize) -> Box<dyn Fn(bool) 
     })
   })
 }
+
+#[cfg(test)]
+mod tests {
+
+  #[test]
+  fn test_generate_valid_puzzle() {
+    (3..=6).into_iter().for_each(|n| {
+      println!("n: {n}");
+      (1..=3).into_iter().for_each(|c| {
+        println!("c: {c}");
+        let puzzle = super::generate_valid_puzzle(n)(c)(false);
+        println!("puzzle: {puzzle:?}");
+        let expected_len = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
+        let max_hole = expected_len as f32 - (n as f32 / 2.0).floor();
+        let log_factor: f64 = match c {
+          1 => 3.0 / 7.0,
+          2 => 5.0 / 7.0,
+          3 => 1.0,
+          _ => 0.0
+        };
+        let expected_hole_size = (max_hole as f64 * log_factor.sqrt()).ceil() as usize;
+        assert_eq!(puzzle.len(), expected_len);
+        assert_eq!(puzzle.iter().filter(|tile| tile.is_none()).count(), expected_hole_size);
+      })
+    });
+
+    (3..=6).into_iter().for_each(|n| {
+      println!("n: {n}");
+      (1..=3).into_iter().for_each(|c| {
+        println!("c: {c}");
+        let puzzle = super::generate_valid_puzzle(n)(c)(true);
+        println!("puzzle: {puzzle:?}");
+        let expected_len = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
+        let max_hole = expected_len as f32 - (n as f32 / 2.0).floor();
+        let log_factor: f64 = match c {
+          1 => 3.0 / 7.0,
+          2 => 5.0 / 7.0,
+          3 => 1.0,
+          _ => 0.0
+        };
+        let expected_hole_size = (max_hole as f64 * log_factor.sqrt()).ceil() as usize;
+        assert_eq!(puzzle.len(), expected_len);
+        assert_eq!(puzzle.iter().filter(|tile| tile.is_none()).count(), expected_hole_size);
+      })
+    });
+  }
+}

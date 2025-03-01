@@ -12,7 +12,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> usize {
 }
 
 fn compute_complexity(holes: Vec<(usize, usize)>, max_hole: f32) -> usize {
-  let number_of_holes_factor = 1.0 / ((holes.len() as f32).sqrt().sqrt().sqrt().sqrt().sqrt());
+  let number_of_holes_factor = 1.0 / ((holes.len() as f32).powf(0.1));
   let length_factor = holes.into_iter().map(|hole| (hole.1.saturating_sub(hole.0) as f32 /max_hole as f32)
   .powf(2.0)).sum::<f32>();
   // println!("number_of_holes_factor: {number_of_holes_factor}, length_factor: {length_factor}");
@@ -21,7 +21,8 @@ fn compute_complexity(holes: Vec<(usize, usize)>, max_hole: f32) -> usize {
     c if c == 0.0 => 0,
     c if c < 4.0 / 7.0 => 1,
     c if c < 6.0 / 7.0 => 2,
-    _ => 3
+    c if c >= 6.0 / 7.0 => 3,
+    _ => unreachable!(),
   };
   c
 }

@@ -8,7 +8,6 @@ pub(super) struct NextNodeBuilder<'a> {
     graph: &'a Graph,
     random: Option<bool>,
     visited: Option<HashSet<Arc>>,
-    unvisited_edge_index: Option<Option<usize>>, // Option wrapped in Option due to its type
     current_vertex: Option<Node>,
 }
 
@@ -19,7 +18,6 @@ impl<'a> NextNodeBuilder<'a> {
           graph,
           random: None,
           visited: None,
-          unvisited_edge_index: None,
           current_vertex: None,
       }
   }
@@ -35,11 +33,6 @@ impl<'a> NextNodeBuilder<'a> {
       self
   }
 
-  pub fn with_unvisited_edge_index(mut self, unvisited_edge_index: Option<usize>) -> Self {
-      self.unvisited_edge_index = Some(unvisited_edge_index);
-      self
-  }
-
   pub fn with_current_vertex(mut self, current_vertex: Node) -> Self {
       self.current_vertex = Some(current_vertex);
       self
@@ -47,45 +40,44 @@ impl<'a> NextNodeBuilder<'a> {
 
   // Build method: computes and returns the next Node
   pub fn build(self) -> Option<usize> {
-      // Default values for optional fields if not provided
-      let random = self.random.unwrap_or(false);
-      let visited = self.visited.unwrap_or_else(HashSet::new);
-      let _unvisited_edge_index = self.unvisited_edge_index.unwrap_or(None);
-      let current_vertex = self.current_vertex.expect("current_vertex is required to build");
-
-      let mut seed = rand::thread_rng();
-      let edges = self.graph.adjacency
-          .get(&current_vertex)
-          .unwrap();
-
-      if random {
-          edges.iter()
-              .enumerate()
-              .filter(|(_, arc)| {
-                  !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
-                  !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
-              })
-              .choose(&mut seed)
-              .map(|(_, arc)| arc.destination.clone() as usize)
+    let graph = self.graph;
+    let random = self.random.unwrap_or(false);
+    let visited = self.visited.unwrap_or(HashSet::new());
+    let current_vertex = self.current_vertex.unwrap();
+    let mut seed = rand::thread_rng();
+    let mut edges_iterator = graph.adjacency
+      .get(&current_vertex.clone()).unwrap()
+      .iter();
+    if random {
+      edges_iterator
+        .enumerate()
+        .filter(|(_, arc)|
+          !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+          !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
+        )
+        .choose(&mut seed)
+        .map(|(index, _)| index)
+    } else {
+      let double_position = if !visited.contains(&Arc(current_vertex, current_vertex)) {
+      graph.adjacency
+      .get(&current_vertex.clone()).unwrap()
+      .iter()
+      .position(|arc| {
+          return arc.destination == current_vertex;
+        })
       } else {
-          let double_position = if !visited.contains(&Arc(current_vertex.clone(), current_vertex.clone())) {
-              edges.iter()
-                  .position(|arc| arc.destination == current_vertex)
-          } else {
-              None
-          };
-
-          if let Some(pos) = double_position {
-              Some(edges[pos].destination.clone() as usize)
-          } else {
-              edges.iter()
-                  .find(|arc| {
-                      current_vertex != arc.destination &&
-                      !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
-                      !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
-                  })
-                  .map(|arc| arc.destination.clone() as usize)
-              }
-          }
+        None
+      };
+      if double_position.is_none() {
+        let position = edges_iterator
+          .position(|arc| {
+            return current_vertex != arc.destination &&
+            !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+            !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()));
+          });
+        return position;
       }
+      double_position
+      }
+    }
 }

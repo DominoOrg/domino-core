@@ -69,3 +69,21 @@ fn first_node<'a>(graph: &'a Graph) -> impl Fn(bool) -> Node + 'a {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{graphs::find_eulerian_cycle, types::Graph};
+
+
+  #[test]
+  fn test_find_eulerian_cycle() {
+    (3..=6).into_iter().for_each(|n| {
+      println!("n: {n}");
+      let graph = Graph::regular(n);
+      let eulerian_cycle = find_eulerian_cycle(&graph)(false);
+      let expected_len = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
+      println!("{eulerian_cycle:?}");
+      assert_eq!(eulerian_cycle.len(), expected_len + 1);
+    });
+  }
+}
