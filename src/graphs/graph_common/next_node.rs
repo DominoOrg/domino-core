@@ -58,26 +58,32 @@ impl<'a> NextNodeBuilder<'a> {
         .choose(&mut seed)
         .map(|(index, _)| index)
     } else {
-      let double_position = if !visited.contains(&Arc(current_vertex, current_vertex)) {
-      graph.adjacency
-      .get(&current_vertex.clone()).unwrap()
-      .iter()
-      .position(|arc| {
-          return arc.destination == current_vertex;
-        })
-      } else {
-        None
-      };
-      if double_position.is_none() {
-        let position = edges_iterator
+      let position = edges_iterator
           .position(|arc| {
-            return current_vertex != arc.destination &&
-            !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
-            !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()));
-          });
+                return !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+                !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()));
+              });
         return position;
-      }
-      double_position
-      }
+      // let double_position = if !visited.contains(&Arc(current_vertex, current_vertex)) {
+      //   graph.adjacency
+      //   .get(&current_vertex.clone()).unwrap()
+      //   .iter()
+      //   .position(|arc| {
+      //       return arc.destination == current_vertex;
+      //   })
+      // } else {
+      //   None
+      // };
+      // if double_position.is_none() {
+      //   let position = edges_iterator
+      //     .position(|arc| {
+      //           return current_vertex != arc.destination &&
+      //           !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone())) &&
+      //           !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()));
+      //         });
+      //   return position;
+      // }
+      // double_position
     }
+  }
 }

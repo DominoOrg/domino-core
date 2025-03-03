@@ -12,6 +12,9 @@ pub(super) fn reinsert_tile_and_check(
   c: usize,
   random: bool,
 ) -> Puzzle {
+  println!("Puzzle: {puzzle:?}");
+  println!("Classification obtained: {} TRYING TO MATCH DESIDERED C: {c}", classify_puzzle(&puzzle));
+
   // If puzzle is valid and matches desired complexity, return it
   if validate_puzzle(&puzzle, &solution).is_ok() && classify_puzzle(&puzzle) == c {
       return puzzle;
@@ -30,7 +33,7 @@ pub(super) fn reinsert_tile_and_check(
   if c == 3 && validate_puzzle(&new_puzzle, &solution).is_ok() {
       return new_puzzle;
   }
-
+  println!(">>>>>>>>>>>>>>>>>>");
   // Otherwise, recurse
   reinsert_tile_and_check(new_puzzle, solution, new_removed_tiles, c, random)
 }
