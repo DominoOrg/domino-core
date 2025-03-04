@@ -72,7 +72,7 @@ fn first_node<'a>(graph: &'a Graph) -> impl Fn(bool) -> Node + 'a {
 
 #[cfg(test)]
 mod tests {
-    use crate::{graphs::find_eulerian_cycle, types::Graph, Tile};
+    use crate::{graphs::find_eulerian_cycle, types::Graph};
 
 
   #[test]
@@ -82,13 +82,6 @@ mod tests {
       let graph = Graph::regular(n);
       let eulerian_cycle = find_eulerian_cycle(&graph)(false);
       let expected_len = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
-      let sequence: Vec<Tile> = eulerian_cycle
-      .windows(2)
-      .map(|arc| Tile(
-        arc[0].clone().try_into().unwrap(),
-        arc[1].clone().try_into().unwrap())
-      )
-      .collect();
       assert_eq!(eulerian_cycle.len(), expected_len + 1);
 
     });

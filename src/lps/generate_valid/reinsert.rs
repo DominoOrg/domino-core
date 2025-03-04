@@ -97,7 +97,7 @@ fn random_empty_position(puzzle: &Puzzle) -> usize {
 
 #[cfg(test)]
 mod tests {
-  use crate::{classify_puzzle, graphs::find_eulerian_cycle, solve_puzzle, types::Graph, validate_puzzle, Solution, Tile};
+  use crate::{solve_puzzle, validate_puzzle, Tile};
 
   #[test]
   fn test_reinsert_tile_and_check() {

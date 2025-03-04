@@ -82,8 +82,7 @@ mod tests {
         let hole_size = puzzle.iter().filter(|tile| tile.is_none()).count();
         let expected_hole_size = one_hole_relative_complexity_to_absolute(max_hole as usize, c) as usize;
         assert_eq!(puzzle.len(), puzzle_len);
-        let tolerance = ((n as f32 / 2.0).floor() * 2.0) as usize;
-        assert!(hole_size >= expected_hole_size - tolerance && hole_size <= expected_hole_size + tolerance);
+        assert_eq!(expected_hole_size, hole_size);
         println!("-------------------------");
       })
     });

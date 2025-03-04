@@ -4,7 +4,7 @@ use crate::{types::Graph, Puzzle, Solution, Tile};
 
 use super::graph_common::find_eulerian_cycle;
 
-#[deprecated(since = "0.9.8", note = "Use `generate_valid_puzzle` instead")]
+// #[deprecated(since = "0.9.8", note = "Use `generate_valid_puzzle` instead")]
 pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzle {
     let graph = Graph::regular(n);
     let eulerian_cycle = find_eulerian_cycle(&graph)(random);
