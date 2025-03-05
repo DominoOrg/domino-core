@@ -26,7 +26,7 @@ impl Variables {
         for el in combinations {
             vars.insert(el);
         }
-    
+
         vars
     }
 
@@ -47,21 +47,23 @@ impl Variables {
     }
 }
 
-
-// Main function to create variables based on N and random flag.
+// Main function to create variables based on N.
 pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
     let n = get_n(puzzle)? as usize;
-    let tileset = create_tileset(n).into_iter()
-    .enumerate()
-    .filter(|(_, tile)| {
-        let tile = Tile(tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
-        !puzzle.iter().any(|&puzzle_tile| puzzle_tile == Some(tile) || puzzle_tile == Some(tile.flip()))
-    })
-    .collect();
+    let tileset = create_tileset(n)
+        .into_iter()
+        .enumerate()
+        .filter(|(_, tile)| {
+            let tile = Tile(tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
+            !puzzle
+                .iter()
+                .any(|&puzzle_tile| puzzle_tile == Some(tile) || puzzle_tile == Some(tile.flip()))
+        })
+        .collect();
     let mapped_variables = generate_combinations(tileset, n)
-    .into_iter()
-    .filter(|var| puzzle.get(var.position).unwrap().is_none())
-    .collect();
+        .into_iter()
+        .filter(|var| puzzle.get(var.position).unwrap().is_none())
+        .collect();
     Ok(Variables::new(mapped_variables))
 }
 
@@ -117,4 +119,3 @@ fn format_on_n_digits(number: usize, digits: usize) -> String {
     // format!("{:01}", number) // Modify as needed for digit padding.
     return format!("{:0width$}", number, width = digits);
 }
-

@@ -2,15 +2,14 @@ mod error;
 mod graph_types;
 
 pub use error::DominoError;
-pub use graph_types::{Node, Graph};
+pub use graph_types::{Graph, Node};
 
 #[derive(Debug, Clone, Copy, Hash, Eq)]
 pub struct Tile(pub i32, pub i32);
 
 impl PartialEq for Tile {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0 && self.1 == other.1 ||
-        self.0 == other.1 && self.1 == other.0
+        self.0 == other.0 && self.1 == other.1 || self.0 == other.1 && self.1 == other.0
     }
 }
 

@@ -7,5 +7,5 @@ pub type Node = i32;
 pub struct Arc {
     pub source: Node,
     pub destination: Node,
-    pub position: Option<usize>
+    pub position: Option<usize>,
 }

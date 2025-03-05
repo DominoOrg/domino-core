@@ -1,7 +1,7 @@
-mod types;
 mod graphs;
 mod lps;
+mod types;
 
-pub use types::{DominoError, Tile, Solution, Puzzle};
-pub use graphs::{classify_puzzle, generate_puzzle, solve_puzzle};
-pub use lps::{Model, validate_puzzle, generate_valid_puzzle};
+pub use graphs::{classify_puzzle, generate_puzzle, solve_puzzle, Classification};
+pub use lps::{generate_valid_puzzle, validate_puzzle, Model};
+pub use types::{DominoError, Puzzle, Solution, Tile};

@@ -23,22 +23,22 @@ fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
 
 fn objective_function(vars: &Variables, puzzle: &Puzzle, solution: &Solution) -> String {
     let labels = solution
-    .clone()
-    .into_iter()
-    .enumerate()
-    .filter_map(|(i, tile)| {
-        if puzzle[i].is_some() {
-            return None;
-        }
-        let tile: (usize, usize) = (tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
-        if let Some(tiles) = vars.by_tile.get(&tile) {
-            let variable = tiles.iter().filter(|var| var.position == i).next()?;
-            Some(variable.label.clone())
-        } else {
-            None
-        }
-    })
-    .collect::<Vec<String>>();
+        .clone()
+        .into_iter()
+        .enumerate()
+        .filter_map(|(i, tile)| {
+            if puzzle[i].is_some() {
+                return None;
+            }
+            let tile: (usize, usize) = (tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
+            if let Some(tiles) = vars.by_tile.get(&tile) {
+                let variable = tiles.iter().filter(|var| var.position == i).next()?;
+                Some(variable.label.clone())
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<String>>();
     let obj = stringify_variables!(labels, " ");
     obj
 }

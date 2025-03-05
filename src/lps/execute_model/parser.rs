@@ -16,7 +16,7 @@ pub enum BoundType {
 pub struct Bound {
     _name: String,
     pub lhs: (Vec<(f64, String)>, f64), // Coefficient and variable pairs for the left-hand side
-    pub rhs: (Vec<(f64, String)>, f64),                 // Right-hand side constant
+    pub rhs: (Vec<(f64, String)>, f64), // Right-hand side constant
     pub bound_type: BoundType,
 }
 
@@ -77,7 +77,11 @@ impl ModelParser {
                 match mode {
                     "objective" => {
                         // Collects terms for the objective function across multiple lines
-                        let obj_line = line.split_whitespace().skip(1).collect::<Vec<&str>>().join(" ");
+                        let obj_line = line
+                            .split_whitespace()
+                            .skip(1)
+                            .collect::<Vec<&str>>()
+                            .join(" ");
                         let expr = self.parse_expression(&obj_line);
                         current_objective_terms.extend(expr.0);
                         constant = expr.1;
@@ -106,13 +110,25 @@ impl ModelParser {
 
         let (lhs, bound_type, rhs) = if rest.contains("<=") {
             let sides: Vec<&str> = rest.split("<=").collect();
-            (self.parse_expression(sides[0]), BoundType::LessThanOrEqual, self.parse_expression(sides[1]))
+            (
+                self.parse_expression(sides[0]),
+                BoundType::LessThanOrEqual,
+                self.parse_expression(sides[1]),
+            )
         } else if rest.contains(">=") {
             let sides: Vec<&str> = rest.split(">=").collect();
-            (self.parse_expression(sides[0]), BoundType::GreaterThanOrEqual, self.parse_expression(sides[1]))
+            (
+                self.parse_expression(sides[0]),
+                BoundType::GreaterThanOrEqual,
+                self.parse_expression(sides[1]),
+            )
         } else if rest.contains("=") {
             let sides: Vec<&str> = rest.split('=').collect();
-            (self.parse_expression(sides[0]), BoundType::Equality, self.parse_expression(sides[1]))
+            (
+                self.parse_expression(sides[0]),
+                BoundType::Equality,
+                self.parse_expression(sides[1]),
+            )
         } else {
             panic!("Unrecognized constraint format");
         };
@@ -130,43 +146,64 @@ impl ModelParser {
         let mut constant = 0.0;
         let mut current_sign = 1.0;
         let mut buffer = String::new();
-    
+
         for (i, c) in expr.chars().enumerate() {
             match c {
                 ' ' => {
                     if !buffer.is_empty() {
-                        self.parse_and_add_term(&mut buffer, &mut terms, &mut constant, current_sign);
+                        self.parse_and_add_term(
+                            &mut buffer,
+                            &mut terms,
+                            &mut constant,
+                            current_sign,
+                        );
                         buffer.clear();
                     }
-                },
+                }
                 '+' => {
                     if !buffer.is_empty() {
-                        self.parse_and_add_term(&mut buffer, &mut terms, &mut constant, current_sign);
+                        self.parse_and_add_term(
+                            &mut buffer,
+                            &mut terms,
+                            &mut constant,
+                            current_sign,
+                        );
                         buffer.clear();
                     }
                     current_sign = 1.0;
                 }
                 '-' => {
                     if !buffer.is_empty() {
-                        self.parse_and_add_term(&mut buffer, &mut terms, &mut constant, current_sign);
+                        self.parse_and_add_term(
+                            &mut buffer,
+                            &mut terms,
+                            &mut constant,
+                            current_sign,
+                        );
                         buffer.clear();
                     }
                     current_sign = -1.0;
                 }
                 _ => buffer.push(c), // Accumulate characters into buffer
             }
-    
+
             // If it's the last character, parse the remaining buffer
             if i == expr.len() - 1 && !buffer.is_empty() {
                 self.parse_and_add_term(&mut buffer, &mut terms, &mut constant, current_sign);
             }
         }
-    
+
         (terms, constant)
     }
-    
+
     // Helper function to parse buffer content as either a constant or variable term
-    fn parse_and_add_term(&self, buffer: &mut String, terms: &mut Vec<(f64, String)>, constant: &mut f64, sign: f64) {
+    fn parse_and_add_term(
+        &self,
+        buffer: &mut String,
+        terms: &mut Vec<(f64, String)>,
+        constant: &mut f64,
+        sign: f64,
+    ) {
         // Check if buffer is empty (nothing to parse)
         if buffer.is_empty() {
             return;
@@ -175,7 +212,7 @@ impl ModelParser {
         // Case 1: If the buffer is purely numeric, treat it as a constant
         if buffer.chars().all(|c| c.is_digit(10) || c == '.') {
             *constant += sign * buffer.parse::<f64>().unwrap();
-        
+
         // Case 2: If buffer starts with a digit and contains letters, it's a variable with a coefficient
         } else if buffer.chars().next().unwrap().is_digit(10) {
             let mut coefficient_str = String::new();
@@ -191,7 +228,7 @@ impl ModelParser {
             // Parse coefficient and add term
             let coefficient = sign * coefficient_str.parse::<f64>().unwrap();
             terms.push((coefficient, buffer.clone())); // Remainder of buffer is the variable name
-        
+
         // Case 3: If buffer starts with a letter, treat it as a variable with implicit coefficient 1
         } else {
             terms.push((sign, buffer.clone()));
@@ -200,8 +237,4 @@ impl ModelParser {
         // Clear buffer after parsing
         buffer.clear();
     }
-
-    
-    
-    
 }
