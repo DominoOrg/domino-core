@@ -1,27 +1,14 @@
 pub mod benches;
 
-use domino_lib::{classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, Classification, Puzzle};
+use domino_lib::{classify_puzzle, generate_puzzle, generate_valid_puzzle, solve_puzzle, validate_puzzle, ComplexityClass, Puzzle};
 
 fn test_suite() -> Vec<usize> {
     // todo!("Add more lengths to test suite");
     return vec![3, 4];
 }
 
-fn mock_puzzle(n: usize, complexity: Classification) -> Puzzle {
-    let l = if n % 2 == 0 {
-        (n + 1) * (n + 2) / 2
-    } else {
-        (n + 1) * (n + 1) / 2
-    };
-    let max_hole = (l as f32 - (n as f32 / 2.0).floor()) as usize;
-    let log_factor: f32 = match complexity.0 {
-        1 => 1.0 / l as f32,
-        2 => 4.0 / 7.0,
-        3 => 6.0 / 7.0,
-        _ => 0.0,
-    };
-    let max_index = (max_hole as f32 * log_factor.sqrt()).ceil() as usize;
-    let puzzle = generate_puzzle(n, max_index, false);
+fn mock_puzzle(n: usize, complexity: ComplexityClass) -> Puzzle {
+    let puzzle = generate_valid_puzzle(n)(complexity)(false);
     puzzle
 }
 
@@ -86,7 +73,7 @@ fn test_validate() {
 #[test]
 fn test_classify() {
     test_suite().into_iter().for_each(|n| {
-        (1..=3).into_iter().map(|c| Classification::new(c)).for_each(|expected_complexity| {
+        (1..=3).into_iter().map(|c| ComplexityClass::new(c)).for_each(|expected_complexity| {
             let puzzle = mock_puzzle(n, expected_complexity);
             let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
             assert_eq!(computed_complexity, expected_complexity);
@@ -105,7 +92,7 @@ fn test_all() {
         let minimum_tiles = (n as f32 / 2.0).floor();
         let max_hole = l - minimum_tiles as usize;
 
-        (1..=3).into_iter().map(|c| Classification::new(c)).for_each(|expected_complexity| {
+        (1..=3).into_iter().map(|c| ComplexityClass::new(c)).for_each(|expected_complexity| {
             let log_factor = match expected_complexity.0 {
                 1 => 1.0 / l as f32,
                 2 => 4.0 / 7.0,

@@ -1,6 +1,6 @@
 use bencher::format_duration;
 use domino_lib::{
-    classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, Classification, Puzzle,
+    classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, ComplexityClass, Puzzle,
 };
 use std::{
     cell::RefCell,
@@ -15,7 +15,7 @@ fn bench_test_suite() -> Vec<usize> {
     return vec![5];
 }
 
-fn mock_puzzle(n: usize, complexity: Classification) -> Puzzle {
+fn mock_puzzle(n: usize, complexity: ComplexityClass) -> Puzzle {
     let l = if n % 2 == 0 {
         (n + 1) * (n + 2) / 2
     } else {
@@ -152,9 +152,8 @@ fn bench_validate() {
 #[test]
 fn bench_classify() {
     bench_test_suite().into_iter().for_each(|n| {
-    (1..=3).into_iter().map(|c| Classification::new(c))
+    (1..=3).into_iter().map(|c| ComplexityClass::new(c))
     .for_each(|expected_complexity| {
-      println!("n: {n} expected_complexity: {expected_complexity}");
       let mut durations: Vec<Duration> = vec![];
       let mut now: Instant;
       let mut duration: Duration;
@@ -164,12 +163,11 @@ fn bench_classify() {
         let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
         duration = now.elapsed();
         durations.push(duration);
-        println!("puzzle: {puzzle:?}\ncomputed_complexity: {computed_complexity:?}");
         assert_eq!(computed_complexity, expected_complexity);
       }
 
       let average = durations.iter().sum::<Duration>() / durations.len() as u32;
-      println!("Average time for classification with n = {n} and c = {expected_complexity}: {}", format_duration(average));
+      println!("Average time for ComplexityClass with n = {n} and c = {expected_complexity}: {}", format_duration(average));
     });
 
   });
@@ -183,7 +181,7 @@ fn bench_all() {
       let max_hole = l - minimum_tiles as usize;
       println!("n: {n} max_hole: {max_hole}\n\n");
 
-      (1..=3).into_iter().map(|c| Classification::new(c)).for_each(|expected_complexity| {
+      (1..=3).into_iter().map(|c| ComplexityClass::new(c)).for_each(|expected_complexity| {
         let log_factor = match expected_complexity.0 {
             1 => 1.0 / l as f32,
             2 => 4.0 / 7.0,
