@@ -1,8 +1,6 @@
 use rand::Rng;
 
-use crate::{types::Graph, Puzzle, Solution, Tile};
-
-use super::graph_common::find_eulerian_cycle;
+use crate::{utils::find_eulerian_cycle, Graph, Puzzle, Solution, Tile};
 
 // #[deprecated(since = "0.9.8", note = "Use `generate_valid_puzzle` instead")]
 pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzle {

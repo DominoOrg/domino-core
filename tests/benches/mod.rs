@@ -152,7 +152,7 @@ fn bench_validate() {
 #[test]
 fn bench_classify() {
     bench_test_suite().into_iter().for_each(|n| {
-    (1..=3).into_iter().map(|c| ComplexityClass::new(c))
+    (1..=3).into_iter().map(|c| ComplexityClass::new(c).unwrap())
     .for_each(|expected_complexity| {
       let mut durations: Vec<Duration> = vec![];
       let mut now: Instant;
@@ -181,7 +181,7 @@ fn bench_all() {
       let max_hole = l - minimum_tiles as usize;
       println!("n: {n} max_hole: {max_hole}\n\n");
 
-      (1..=3).into_iter().map(|c| ComplexityClass::new(c)).for_each(|expected_complexity| {
+      (1..=3).into_iter().map(|c| ComplexityClass::new(c).unwrap()).for_each(|expected_complexity| {
         let log_factor = match expected_complexity.0 {
             1 => 1.0 / l as f32,
             2 => 4.0 / 7.0,

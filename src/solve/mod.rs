@@ -1,8 +1,7 @@
-use crate::{DominoError, Puzzle, Solution, Tile};
 use std::collections::HashSet;
 use std::time::Instant;
 
-use super::common::get_missing_tiles;
+use crate::{utils::get_n, DominoError, Puzzle, Solution, Tile};
 
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
     let mut new_puzzle = puzzle.clone();
@@ -90,6 +89,33 @@ fn solve_puzzle_r(
     false
 }
 
+pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> {
+    let n = get_n(puzzle)?;
+    let tileset: HashSet<Tile> = (0..(n + 1))
+        .map(|i| ((0)..(n + 1)).map(|j| Tile(i, j)).collect::<Vec<Tile>>())
+        .flatten()
+        .filter(|tile| {
+            if n % 2 == 0 {
+                true
+            } else {
+                (tile.0 - tile.1).abs() as i32 != ((n as i32 + 1) / 2)
+            }
+        })
+        .collect();
+    let used_tiles: HashSet<Tile> = puzzle
+        .iter()
+        .filter_map(|tile| {
+            if tile.is_some() {
+                Some(vec![tile.unwrap().clone(), tile.unwrap().flip()])
+            } else {
+                None
+            }
+        })
+        .flatten()
+        .collect();
+    let missing_tiles: HashSet<Tile> = tileset.difference(&used_tiles).cloned().collect();
+    Ok(missing_tiles)
+}
 // #[cfg(test)]
 // mod tests {
 //   // use crate::Tile;

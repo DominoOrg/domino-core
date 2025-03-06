@@ -1,15 +1,8 @@
-pub use crate::types::{Graph, Node};
-use next_node::NextNodeBuilder;
-use rand::seq::SliceRandom;
+use super::{first_node::first_node, next_node::NextNodeBuilder};
+use crate::utils::graphs::{Arc, Graph, Node};
 use std::collections::HashSet;
 
-mod next_node;
-
-pub fn find_eulerian_cycle<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + use<'a> {
-    move |random: bool| -> Vec<Node> { hierholzer(graph)(random) }
-}
-
-fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + use<'a> {
+pub fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + use<'a> {
     move |random: bool| {
         let mut circuit: Vec<Node> = Vec::new();
         let mut visited: HashSet<Arc> = HashSet::new();
@@ -17,7 +10,7 @@ fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + use<'a> {
         while !stack.is_empty() {
             if let Some(current_vertex) = stack.pop() {
                 // Choice of the next node
-                let unvisited_edge_index = NextNodeBuilder::new(graph)
+                let unvisited_edge_index: Option<usize> = NextNodeBuilder::new(graph)
                     .with_random(random)
                     .with_visited(visited.clone())
                     .with_current_vertex(current_vertex.clone())
@@ -35,10 +28,10 @@ fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + use<'a> {
                         .destination
                         .clone();
                     if current_vertex != next_vertex {
-                        visited.insert(Arc(current_vertex.clone(), next_vertex.clone()));
-                        visited.insert(Arc(next_vertex.clone(), current_vertex.clone()));
+                        visited.insert(Arc::from((current_vertex.clone(), next_vertex.clone())));
+                        visited.insert(Arc::from((next_vertex.clone(), current_vertex.clone())));
                     } else {
-                        visited.insert(Arc(next_vertex.clone(), current_vertex.clone()));
+                        visited.insert(Arc::from((next_vertex.clone(), current_vertex.clone())));
                     }
                     stack.push(next_vertex);
                 } else {
@@ -51,27 +44,10 @@ fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + use<'a> {
     }
 }
 
-#[derive(Debug, Clone, Eq, Hash)]
-struct Arc(Node, Node);
-impl PartialEq for Arc {
-    fn eq(&self, other: &Self) -> bool {
-        (self.0 == other.0 && self.1 == other.1) || (self.0 == other.1 && self.1 == other.0)
-    }
-}
-fn first_node<'a>(graph: &'a Graph) -> impl Fn(bool) -> Node + 'a {
-    move |random: bool| {
-        let mut seed = rand::thread_rng();
-        if random {
-            graph.nodes.choose(&mut seed).unwrap().clone()
-        } else {
-            graph.nodes.first().unwrap().clone()
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::{graphs::find_eulerian_cycle, types::Graph};
+    use super::Graph;
+    use crate::utils::graphs::find_eulerian_cycle;
 
     #[test]
     fn test_find_eulerian_cycle() {

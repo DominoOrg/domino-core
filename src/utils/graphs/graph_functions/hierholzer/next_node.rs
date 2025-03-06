@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use rand::seq::IteratorRandom;
 
-use super::{Arc, Graph, Node};
+use crate::{utils::Arc, Graph, Node};
 
 pub(super) struct NextNodeBuilder<'a> {
     graph: &'a Graph,
@@ -50,15 +50,25 @@ impl<'a> NextNodeBuilder<'a> {
             edges_iterator
                 .enumerate()
                 .filter(|(_, arc)| {
-                    !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone()))
-                        && !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()))
+                    !visited.contains(&Arc::from((
+                        current_vertex.clone(),
+                        arc.destination.clone(),
+                    ))) && !visited.contains(&Arc::from((
+                        arc.destination.clone(),
+                        current_vertex.clone(),
+                    )))
                 })
                 .choose(&mut seed)
                 .map(|(index, _)| index)
         } else {
             let position = edges_iterator.position(|arc| {
-                return !visited.contains(&Arc(current_vertex.clone(), arc.destination.clone()))
-                    && !visited.contains(&Arc(arc.destination.clone(), current_vertex.clone()));
+                return !visited.contains(&Arc::from((
+                    current_vertex.clone(),
+                    arc.destination.clone(),
+                ))) && !visited.contains(&Arc::from((
+                    arc.destination.clone(),
+                    current_vertex.clone(),
+                )));
             });
             return position;
             // let double_position = if !visited.contains(&Arc(current_vertex, current_vertex)) {

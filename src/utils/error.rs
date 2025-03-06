@@ -6,6 +6,9 @@ pub enum DominoError {
     Timeout,
     ModelGenerationError(String),
     ModelError(String),
+    GenerationError(String),
+    InvalidClass(String),
+    EmptyPuzzle,
 }
 
 impl std::fmt::Display for DominoError {
@@ -20,6 +23,13 @@ impl std::fmt::Display for DominoError {
             Self::Timeout => write!(f, "The puzzle took too long to solve"),
             Self::ModelGenerationError(message) => write!(f, "{}", message),
             Self::ModelError(message) => write!(f, "{}", message),
+            Self::GenerationError(message) => write!(
+                f,
+                "The puzzle could not be generated with the requires parameters: {}",
+                message
+            ),
+            Self::InvalidClass(message) => write!(f, "{}", message),
+            Self::EmptyPuzzle => write!(f, "The puzzle is empty"),
         }
     }
 }

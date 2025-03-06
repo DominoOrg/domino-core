@@ -1,6 +1,9 @@
 pub mod benches;
 
-use domino_lib::{classify_puzzle, generate_puzzle, generate_valid_puzzle, solve_puzzle, validate_puzzle, ComplexityClass, Puzzle};
+use domino_lib::{
+    classify_puzzle, generate_puzzle, generate_valid_puzzle, solve_puzzle, validate_puzzle,
+    ComplexityClass, Puzzle,
+};
 
 fn test_suite() -> Vec<usize> {
     // todo!("Add more lengths to test suite");
@@ -8,7 +11,7 @@ fn test_suite() -> Vec<usize> {
 }
 
 fn mock_puzzle(n: usize, complexity: ComplexityClass) -> Puzzle {
-    let puzzle = generate_valid_puzzle(n)(complexity)(false);
+    let puzzle = generate_valid_puzzle(n)(complexity).expect("Failed to generate valid puzzle");
     puzzle
 }
 
@@ -73,11 +76,15 @@ fn test_validate() {
 #[test]
 fn test_classify() {
     test_suite().into_iter().for_each(|n| {
-        (1..=3).into_iter().map(|c| ComplexityClass::new(c)).for_each(|expected_complexity| {
-            let puzzle = mock_puzzle(n, expected_complexity);
-            let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
-            assert_eq!(computed_complexity, expected_complexity);
-        })
+        (1..=3)
+            .into_iter()
+            .map(|c| ComplexityClass::new(c).unwrap())
+            .for_each(|expected_complexity| {
+                let puzzle = mock_puzzle(n, expected_complexity);
+                let computed_complexity =
+                    classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
+                assert_eq!(computed_complexity, expected_complexity);
+            })
     });
 }
 
@@ -92,22 +99,26 @@ fn test_all() {
         let minimum_tiles = (n as f32 / 2.0).floor();
         let max_hole = l - minimum_tiles as usize;
 
-        (1..=3).into_iter().map(|c| ComplexityClass::new(c)).for_each(|expected_complexity| {
-            let log_factor = match expected_complexity.0 {
-                1 => 1.0 / l as f32,
-                2 => 4.0 / 7.0,
-                3 => 6.0 / 7.0,
-                _ => 0.0,
-            };
-            let minimum_removals = (max_hole as f32 * log_factor.sqrt()).ceil() as usize;
-            let puzzle = generate_puzzle(n, minimum_removals, false);
-            solve_puzzle(&puzzle)
-                .ok()
-                .filter(|solution| validate_puzzle(&puzzle, solution).is_ok())
-                .map(|_solution| {
-                    let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
-                    assert_eq!(expected_complexity, computed_complexity);
-                });
-        });
+        (1..=3)
+            .into_iter()
+            .map(|c| ComplexityClass::new(c).unwrap())
+            .for_each(|expected_complexity| {
+                let log_factor = match expected_complexity.0 {
+                    1 => 1.0 / l as f32,
+                    2 => 4.0 / 7.0,
+                    3 => 6.0 / 7.0,
+                    _ => 0.0,
+                };
+                let minimum_removals = (max_hole as f32 * log_factor.sqrt()).ceil() as usize;
+                let puzzle = generate_puzzle(n, minimum_removals, false);
+                solve_puzzle(&puzzle)
+                    .ok()
+                    .filter(|solution| validate_puzzle(&puzzle, solution).is_ok())
+                    .map(|_solution| {
+                        let computed_complexity = classify_puzzle(&puzzle)
+                            .expect("Failed to classify puzzle: {puzzle:?}");
+                        assert_eq!(expected_complexity, computed_complexity);
+                    });
+            });
     });
 }
