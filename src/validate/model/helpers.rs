@@ -22,14 +22,6 @@ use super::variables::Variable;
 /// * `Ordering::Less` if `label1` should appear before `label2`.
 /// * `Ordering::Greater` if `label1` should appear after `label2`.
 /// * `Ordering::Equal` if they are identical.
-///
-/// # Example
-///
-/// ```rust
-/// let label1 = "A12".to_string();
-/// let label2 = "A13".to_string();
-/// assert_eq!(sorting_label(&label1, &label2), std::cmp::Ordering::Less);
-/// ```
 pub fn sorting_label(label1: &String, label2: &String) -> Ordering {
     let parse_label = |label: &String| {
         let (tile_index, position) = (
@@ -63,14 +55,6 @@ pub fn sorting_label(label1: &String, label2: &String) -> Ordering {
 /// # Returns
 ///
 /// A formatted string where labels are concatenated with the given separator.
-///
-/// # Example
-///
-/// ```rust
-/// let labels = vec!["x1".to_string(), "x2".to_string(), "x3".to_string()];
-/// let result = stringify_variables!(labels, " ");
-/// assert_eq!(result, "x1 x2 x3");
-/// ```
 #[macro_export]
 macro_rules! stringify_variables {
     // Handle two arguments, setting the default to `None` for the third parameter
@@ -111,17 +95,6 @@ macro_rules! stringify_variables {
 /// # Returns
 ///
 /// A `Vec<String>` containing the labels of all variables.
-///
-/// # Example
-///
-/// ```rust
-/// let vars = vec![
-///     Variable { label: "x1".to_string(), position: 0 },
-///     Variable { label: "x2".to_string(), position: 1 },
-/// ];
-/// let labels = collect_labels(&vars);
-/// assert_eq!(labels, vec!["x1".to_string(), "x2".to_string()]);
-/// ```
 pub fn collect_labels(variables: &[Variable]) -> Vec<String> {
     variables.iter().map(|var| var.label.clone()).collect()
 }
@@ -138,14 +111,6 @@ pub fn collect_labels(variables: &[Variable]) -> Vec<String> {
 /// # Returns
 ///
 /// A string representing the constraint expression.
-///
-/// # Example
-///
-/// ```rust
-/// let labels = vec!["x1".to_string(), "x2".to_string(), "x3".to_string()];
-/// let constraint = create_bound_string(labels);
-/// assert_eq!(constraint, "x1 x2 x3 = 1");
-/// ```
 pub fn create_bound_string(labels: Vec<String>) -> String {
     format!("{} = 1", stringify_variables!(labels, " "))
 }

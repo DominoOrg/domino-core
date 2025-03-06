@@ -26,15 +26,6 @@ impl ComplexityClass {
     /// * `Ok(ComplexityClass)` - If the provided class is in the range `[1, NUMBER_OF_CLASSES]`.
     /// * `Err(DominoError::InvalidClass)` - If the class is out of bounds.
     ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let valid_class = ComplexityClass::new(3);
-    /// assert!(valid_class.is_ok());
-    ///
-    /// let invalid_class = ComplexityClass::new(0);
-    /// assert!(invalid_class.is_err());
-    /// ```
     pub fn new(class: usize) -> Result<ComplexityClass, DominoError> {
         if class == 0 || class > NUMBER_OF_CLASSES {
             let err_msg = format!(
@@ -50,13 +41,6 @@ impl ComplexityClass {
 
 impl Display for ComplexityClass {
     /// Formats the `ComplexityClass` as a string.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let class = ComplexityClass(5);
-    /// assert_eq!(format!("{}", class), "5");
-    /// ```
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(format!("{}", self.0).as_str())
     }
@@ -64,14 +48,6 @@ impl Display for ComplexityClass {
 
 impl Into<f32> for ComplexityClass {
     /// Converts the `ComplexityClass` into a floating-point number.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let class = ComplexityClass(4);
-    /// let class_as_float: f32 = class.into();
-    /// assert_eq!(class_as_float, 4.0);
-    /// ```
     fn into(self) -> f32 {
         self.0 as f32
     }

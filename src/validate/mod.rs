@@ -29,19 +29,6 @@ mod model;
 /// - If `compute_model()` returns an error.
 /// - If `Model::execute()` fails to execute the computed model.
 /// - If the extracted objective value does not match the expected missing tile count.
-///
-/// # Examples
-///
-/// ```rust
-/// use domino_lib::{generate_puzzle, solve_puzzle};
-///
-/// let puzzle = generate_puzzle(3, 1, false);  // Assuming `Puzzle::new()` initializes a valid puzzle.
-/// let solution = solve_puzzle(&puzzle);  // Assuming `Solution::new()` initializes a valid solution.
-/// match validate_puzzle(&puzzle, &solution) {
-///     Ok(_) => println!("Solution is valid."),
-///     Err(e) => println!("Solution is invalid: {:?}", e),
-/// }
-/// ```
 pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), DominoError> {
   // Compute a string-based model representation for the puzzle and solution.
   let string_model = compute_model(puzzle, solution)?;

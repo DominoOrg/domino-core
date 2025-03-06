@@ -152,23 +152,33 @@ fn bench_validate() {
 #[test]
 fn bench_classify() {
     bench_test_suite().into_iter().for_each(|n| {
-    (1..=3).into_iter().map(|c| ComplexityClass::new(c).unwrap())
-    .for_each(|expected_complexity| {
-      let mut durations: Vec<Duration> = vec![];
-      let mut now: Instant;
-      let mut duration: Duration;
-      for _ in 0..TEST_REPETITIONS {
-        let puzzle = mock_puzzle(n, expected_complexity);
-        now = Instant::now();
-        let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
-        duration = now.elapsed();
-        durations.push(duration);
-        assert_eq!(computed_complexity, expected_complexity);
-      }
+      let l = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
+      let minimum_tiles = if n <= 3 { (n as f32 / 2.0).floor() } else { n as f32 + 1.0 };
+      let max_hole = l - minimum_tiles as usize;
+      (1..=3).into_iter().map(|c| ComplexityClass::new(c).unwrap())
+      .for_each(|expected_complexity| {
+        let log_factor = match expected_complexity.0 {
+            1 => 1.0 / l as f32,
+            2 => 4.0 / 7.0,
+            3 => 6.0 / 7.0,
+            _ => 0.0
+        };
+        let minimum_removals = (max_hole as f32 * log_factor.sqrt()).ceil() as usize;
+        let mut durations: Vec<Duration> = vec![];
+        let mut now: Instant;
+        let mut duration: Duration;
+        for _ in 0..TEST_REPETITIONS {
+          let puzzle = generate_puzzle(n, minimum_removals, false);
+          now = Instant::now();
+          let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
+          duration = now.elapsed();
+          durations.push(duration);
+          assert_eq!(computed_complexity, expected_complexity);
+        }
 
-      let average = durations.iter().sum::<Duration>() / durations.len() as u32;
-      println!("Average time for ComplexityClass with n = {n} and c = {expected_complexity}: {}", format_duration(average));
-    });
+        let average = durations.iter().sum::<Duration>() / durations.len() as u32;
+        println!("Average time for ComplexityClass with n = {n} and c = {expected_complexity}: {}", format_duration(average));
+      });
 
   });
 }
@@ -177,7 +187,7 @@ fn bench_classify() {
 fn bench_all() {
     bench_test_suite().into_iter().for_each(|n| {
       let l = if n % 2 == 0 {(n + 1) * (n + 2) / 2} else {(n + 1) * (n + 1) / 2};
-      let minimum_tiles = (n as f32/2.0).floor();
+      let minimum_tiles = if n <= 3 { (n as f32 / 2.0).floor() } else { n as f32 + 1.0 };
       let max_hole = l - minimum_tiles as usize;
       println!("n: {n} max_hole: {max_hole}\n\n");
 

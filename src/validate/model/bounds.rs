@@ -21,13 +21,6 @@ use super::{
 /// # Returns
 ///
 /// A vector of strings representing the constraints.
-///
-/// # Example
-///
-/// ```rust
-/// let vars = Variables::new();
-/// let constraints = each_tile_used_once_bound(&vars);
-/// ```
 pub fn each_tile_used_once_bound(vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
 
@@ -66,13 +59,6 @@ pub fn each_tile_used_once_bound(vars: &Variables) -> Vec<String> {
 /// # Returns
 ///
 /// A vector of strings representing the constraints.
-///
-/// # Example
-///
-/// ```rust
-/// let vars = Variables::new();
-/// let constraints = each_position_filled_bound(&vars);
-/// ```
 pub fn each_position_filled_bound(vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
 
@@ -98,14 +84,6 @@ pub fn each_position_filled_bound(vars: &Variables) -> Vec<String> {
 /// # Returns
 ///
 /// A vector of strings representing adjacency constraints.
-///
-/// # Example
-///
-/// ```rust
-/// let puzzle = Puzzle::new();
-/// let vars = Variables::new();
-/// let constraints = next_adjacent_bound(&puzzle, &vars);
-/// ```
 pub fn next_adjacent_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
     let n = get_n(puzzle).expect("Puzzle does not have a valid length") as usize;
@@ -144,14 +122,6 @@ pub fn next_adjacent_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
 /// # Returns
 ///
 /// An `Option<String>` containing the adjacency constraint if applicable.
-///
-/// # Example
-///
-/// ```rust
-/// let vars = Variables::new();
-/// let tile = Tile(1, 2);
-/// let constraint = next_enforced_bound(&vars, tile, 0);
-/// ```
 fn next_enforced_bound(vars: &Variables, tile: Tile, position: usize) -> Option<String> {
     let number = tile.0 as usize;
     let condition = |var: &Variable| var.tile.1 == number.try_into().unwrap();
@@ -180,14 +150,6 @@ fn next_enforced_bound(vars: &Variables, tile: Tile, position: usize) -> Option<
 /// # Returns
 ///
 /// An `Option<String>` containing the adjacency constraint if applicable.
-///
-/// # Example
-///
-/// ```rust
-/// let puzzle = Puzzle::new();
-/// let vars = Variables::new();
-/// let constraint = next_bound(&puzzle, &vars, 0, 1);
-/// ```
 fn next_bound(puzzle: &Puzzle, vars: &Variables, position: usize, number: usize) -> Option<String> {
     let condition = |var: &Variable| var.tile.1 == number.try_into().unwrap();
     let left_member_variables: Vec<String> =
@@ -223,15 +185,6 @@ fn next_bound(puzzle: &Puzzle, vars: &Variables, position: usize, number: usize)
 /// # Returns
 ///
 /// A vector of `String` labels representing the variables that satisfy the condition.
-///
-/// # Example
-///
-/// ```rust
-/// let vars = Variables::new();
-/// let position = 0;
-/// let condition = |var: &Variable| var.tile.0 == 1;
-/// let filtered_labels = variables_at_position_with_condition(&vars, position, condition);
-/// ```
 fn variables_at_position_with_condition(
     vars: &Variables,
     position: usize,

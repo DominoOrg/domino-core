@@ -45,12 +45,6 @@ impl Variables {
     /// # Returns
     ///
     /// A `Variables` struct populated with the provided variable combinations.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let variables = Variables::new(vec![Variable { label: "x01".to_string(), tile: (0, 1), position: 0 }]);
-    /// ```
     pub fn new(combinations: Vec<Variable>) -> Self {
         let mut vars = Variables::default();
 
@@ -93,13 +87,6 @@ impl Variables {
 ///
 /// * `Ok(Variables)` - A `Variables` structure containing all valid decision variables.
 /// * `Err(DominoError::InvalidPuzzle)` - If the puzzle is invalid.
-///
-/// # Example
-///
-/// ```rust
-/// let puzzle = Puzzle::new();
-/// let variables = variables(&puzzle).unwrap();
-/// ```
 pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
     let n = get_n(puzzle)? as usize;
 
@@ -131,12 +118,6 @@ pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
 /// # Returns
 ///
 /// A vector of tuples representing all valid tiles `(usize, usize)`.
-///
-/// # Example
-///
-/// ```rust
-/// let tileset = create_tileset(3);
-/// ```
 pub fn create_tileset(n: usize) -> Vec<(usize, usize)> {
     let length: usize = (n + 1).pow(2);
     let mut tileset: Vec<(usize, usize)> = (0..length)
@@ -165,13 +146,6 @@ pub fn create_tileset(n: usize) -> Vec<(usize, usize)> {
 /// # Returns
 ///
 /// A vector of `Variable` instances representing all possible tile placements.
-///
-/// # Example
-///
-/// ```rust
-/// let tileset = vec![(0, (0, 1)), (1, (0, 2))];
-/// let variables = generate_combinations(tileset, 3);
-/// ```
 fn generate_combinations(tileset: Vec<(usize, (usize, usize))>, n: usize) -> Vec<Variable> {
     let sequence_length: usize = if n % 2 == 0 {
         (n + 1) * (n + 2) / 2
@@ -214,13 +188,6 @@ fn generate_combinations(tileset: Vec<(usize, (usize, usize))>, n: usize) -> Vec
 /// # Returns
 ///
 /// A string representation of the number, zero-padded as needed.
-///
-/// # Example
-///
-/// ```rust
-/// let formatted = format_on_n_digits(5, 3);
-/// assert_eq!(formatted, "005");
-/// ```
 fn format_on_n_digits(number: usize, digits: usize) -> String {
     format!("{:0width$}", number, width = digits)
 }

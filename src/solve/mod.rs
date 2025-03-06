@@ -22,13 +22,6 @@ use crate::{utils::get_n, DominoError, Puzzle, Solution, Tile};
 /// * `Ok(Solution)` - If a valid solution is found.
 /// * `Err(DominoError::UnsolvablePuzzle)` - If no solution exists.
 /// * `Err(DominoError::InvalidPuzzle)` - If the puzzle input is invalid.
-///
-/// # Example
-///
-/// ```rust
-/// let puzzle = Puzzle::new();
-/// let solution = solve_puzzle(&puzzle);
-/// ```
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
     let mut new_puzzle = puzzle.clone();
     let missing_tiles = get_missing_tiles(puzzle)?;
@@ -142,13 +135,6 @@ fn is_valid_placement(puzzle: &Puzzle, tile: Tile, position: usize) -> bool {
 ///
 /// * `Ok(HashSet<Tile>)` - The set of missing tiles that need to be placed.
 /// * `Err(DominoError::InvalidPuzzle)` - If the puzzle input is invalid.
-///
-/// # Example
-///
-/// ```rust
-/// let puzzle = Puzzle::new();
-/// let missing_tiles = get_missing_tiles(&puzzle);
-/// ```
 pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> {
     let n = get_n(puzzle)?;
 

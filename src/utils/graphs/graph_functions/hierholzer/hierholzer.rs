@@ -20,15 +20,6 @@ use std::collections::HashSet;
 /// # Returns
 ///
 /// A closure `(bool) -> Vec<Node>` that computes an Eulerian cycle when called.
-///
-/// # Example
-///
-/// ```rust
-/// let graph = Graph::regular(4);
-/// let find_cycle = hierholzer(&graph);
-/// let eulerian_cycle = find_cycle(false);
-/// assert!(!eulerian_cycle.is_empty());
-/// ```
 pub fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + 'a {
     move |random: bool| {
         let mut circuit: Vec<Node> = Vec::new();

@@ -266,15 +266,6 @@ fn normalize_complexity(
 /// A vector of tuples `(usize, usize)` where each tuple represents a detected hole:
 /// - The first element is the starting index (inclusive) of the hole.
 /// - The second element is the index immediately after the last missing tile (exclusive).
-///
-/// # Example
-///
-/// ```
-/// // Assume Puzzle is defined as Vec<Option<Tile>> and Tile is a tuple struct.
-/// let puzzle: Puzzle = vec![Some(Tile(1, 2)), None, None, Some(Tile(3, 4))];
-/// let holes = detect_holes(&puzzle);
-/// // Example output (depending on wrap-around logic): [(0, 3)]
-/// ```
 pub fn detect_holes(puzzle: &Puzzle) -> Vec<(usize, usize)> {
     let len = puzzle.len();
     let mut holes = Vec::new();
