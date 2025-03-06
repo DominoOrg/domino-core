@@ -50,6 +50,7 @@ pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), Domin
   let solver_result = Model::execute(string_model.clone());
 
   // Extract the objective value from the solver result.
+  // May also see the values of the variables through translator._get_variables() method
   let objective_value = solver_result.map(|translator| translator.get_objective());
 
   // Count the number of missing tiles in the puzzle.

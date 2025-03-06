@@ -5,32 +5,32 @@ use good_lp::{solvers::highs::HighsSolution, Expression, Solution, Variable, Var
 #[derive(Debug)]
 pub struct ResultTranslator {
     objective: Expression,
-    var_names: HashMap<Variable, String>,
-    variable_map: HashMap<String, (VariableDefinition, Variable)>,
+    _var_names: HashMap<Variable, String>,
+    _variable_map: HashMap<String, (VariableDefinition, Variable)>,
     solution: HighsSolution,
 }
 
 impl ResultTranslator {
     pub fn new(
         objective: Expression,
-        var_names: HashMap<Variable, String>,
-        variable_map: HashMap<String, (VariableDefinition, Variable)>,
+        _var_names: HashMap<Variable, String>,
+        _variable_map: HashMap<String, (VariableDefinition, Variable)>,
         solution: HighsSolution,
     ) -> Self {
         ResultTranslator {
             objective,
-            var_names,
-            variable_map,
+            _var_names,
+            _variable_map,
             solution,
         }
     }
 
-    pub fn get_variables(&self) -> HashMap<String, f64> {
+    pub fn _get_variables(&self) -> HashMap<String, f64> {
         let mut map = HashMap::new();
-        self.variable_map
+        self._variable_map
             .values()
             .map(|(_var_def, var)| {
-                let name = self.var_names.get(var).unwrap();
+                let name = self._var_names.get(var).unwrap();
                 (name, var)
             })
             .for_each(|(name, var)| {
