@@ -28,7 +28,7 @@ endwhile
 $StyledRectangle("InputValidation","lightblue","1","Here input gets validated")
 :A regular graph from 'n' gets built;
 $StyledRectangle("GenerateSolution","lightcoral","1","Here solution gets generated")
-$StyledRectangle("GeneratePuzzle","lightgreen","1","Here solution gets generated")
+$StyledRectangle("GeneratePuzzle","lightgreen","1","Here puzzle gets generated")
 end
 
 @enduml

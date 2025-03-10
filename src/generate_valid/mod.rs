@@ -1,91 +1,83 @@
 use crate::utils::find_eulerian_cycle;
-use crate::{ComplexityClass, DominoError};
+use crate::{ComplexityClass, DominoError, Node};
 use crate::{Graph, Puzzle, Solution, Tile};
-use rand::seq::{IteratorRandom, SliceRandom};
-use rand::thread_rng;
-use reinsert::reinsert_tile_and_check;
+use rand::Rng;
 use std::vec;
 
-mod reinsert;
-
-/// Generates a valid puzzle of size `n` that can later be customized by complexity class and randomness.
-///
-/// This function adopts a functional style by returning a series of closures, each progressively refining the puzzle generation process.
-/// The first closure takes a `ComplexityClass`, and the second closure takes a boolean (`random`).
-/// These parameters are intended to be used within the function, guiding the puzzle generation based on the chosen complexity and randomness.
-///
-/// # Arguments
-/// * `n` - The number of tiles in the puzzle.
-///
-/// # Returns
-/// A function that, given a `ComplexityClass`, returns another function that generates a `Puzzle`.
-pub fn generate_valid_puzzle(
+/// Represents the puzzle parameters and solution
+#[derive(Clone)]
+struct PuzzleData {
     n: usize,
-) -> Box<dyn Fn(ComplexityClass) -> Result<Puzzle, DominoError>> {
-    Box::new(move |c: ComplexityClass| -> Result<Puzzle, DominoError> {
-        let graph = Graph::regular(n);
-
-        // The Eulerian path is represented as a sequence of nodes traversed.
-        // The solution is built by grouping nodes in pairs and constructing tiles from each pair.
-        let solution: Solution = find_eulerian_cycle(&graph)(true)
-            .windows(2)
-            .map(|arc| {
-                Tile(
-                    arc[0].clone().try_into().unwrap(),
-                    arc[1].clone().try_into().unwrap(),
-                )
-            })
-            .collect();
-
-        // Removes recursively tiles and ensures the puzzle is still valid after removal
-        // Repeats this until the classification class is not matched then returns the puzzle
-        let puzzle = generate_puzzle(solution)(c);
-        puzzle
-    })
-}
-
-/// Generates a puzzle based on a given solution and complexity class.
-///
-/// This function returns a closure that takes a `ComplexityClass` and returns another closure,
-/// which, when called with a boolean (`random`), generates a puzzle.
-///
-/// # Arguments
-/// * `solution` - The reference solution from which to generate the puzzle.
-///
-/// # Returns
-/// A function that, given a `ComplexityClass`, returns another function that generates a `Puzzle`.
-fn generate_puzzle(
+    c: ComplexityClass,
+    graph: Graph,
     solution: Solution,
-) -> Box<dyn Fn(ComplexityClass) -> Result<Puzzle, DominoError>> {
-    Box::new(move |c: ComplexityClass| {
-        // Create an empty puzzle structure with all positions set to `None`.
-        let starting_puzzle: Vec<Option<Tile>> = vec![None; solution.clone().len()];
-
-        // Set the initial removed tiles to the totality of the tiles in the sequence.
-        let mut removed_tiles = solution.clone();
-        removed_tiles.shuffle(&mut thread_rng());
-
-        // The first tile to be reinserted
-        // We avoid double tiles for the first tile since their are always neutral
-        // to the orientation of whole puzzle and so they produce an invalid puzzle
-        let anchor: usize = (0..solution.len())
-            .into_iter()
-            .enumerate()
-            .filter(|(_, pos)| solution[*pos].0 == solution[*pos].1)
-            .map(|(i, _)| i)
-            .choose(&mut thread_rng())
-            .unwrap();
-
-        // Attempt to reinsert removed tiles while checking puzzle validity.
-        let puzzle: Result<Puzzle, DominoError> =
-            reinsert_tile_and_check(starting_puzzle, solution.clone(), removed_tiles, c, anchor);
-        puzzle
-    })
 }
 
-#[cfg(test)]
+/// Orchestrates the puzzle generation flow using currying (one input function)
+fn generate_valid_puzzle(n: usize) -> Box<dyn Fn(usize) -> Result<Puzzle, DominoError>> {
+    Box::new(move |c| ComplexityClass::new(c)
+    .and_then(|valid_c|
+      validate_input(n)(valid_c)
+        .map(generate_solution)
+        .map(generate_puzzle)
+    ))
+}
+
+/// Validates input parameters using currying (one input function)
+fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass)->Result<PuzzleData, DominoError>> {
+  Box::new(move |c| {
+    if n < 1 {
+      Err(DominoError::InvalidLength)
+    } else {
+        Ok(PuzzleData {
+            n,
+            c,
+            graph: Graph::regular(n),
+            solution: vec![], // Empty solution initially
+        })
+    }
+  })
+}
+
+/// Reinserts Hamiltonian paths and returns updated PuzzleData
+fn generate_puzzle(puzzle: PuzzleData) -> Puzzle {
+  let mut rng = rand::thread_rng();
+  let mut hamiltonian_cycles = compute_hamiltonian_cycles(puzzle.n);
+  let mut modified_solution = puzzle.solution.clone();
+
+  for _ in 0..(puzzle.n - 1) / 2 {
+      if let Some(cycle) = hamiltonian_cycles.pop() {
+          let index = rng.gen_range(0..modified_solution.len());
+          // modified_solution.splice(index..index, cycle);
+      }
+  }
+
+  PuzzleData { solution: modified_solution, ..puzzle };
+  vec![]
+}
+
+fn compute_hamiltonian_cycles(n: usize) -> Vec<Vec<Node>> {
+    todo!()
+}
+
+/// Generates a solution using Hierholzer's algorithm
+fn generate_solution(puzzle: PuzzleData) -> PuzzleData {
+  let cycle = find_eulerian_cycle(&puzzle.graph)(true);
+  let sequence = cycle.windows(2)
+  .map(|arc| {
+      Tile(
+          arc[0].clone().try_into().unwrap(),
+          arc[1].clone().try_into().unwrap(),
+      )
+  })
+  .collect();
+
+  PuzzleData { solution: sequence, ..puzzle }
+}
+
 mod tests {
-    use crate::{classify::NUMBER_OF_CLASSES, ComplexityClass};
+
+    use crate::NUMBER_OF_CLASSES;
 
     use super::generate_valid_puzzle;
 
@@ -96,7 +88,6 @@ mod tests {
             (1..=NUMBER_OF_CLASSES)
                 .into_iter()
                 .rev()
-                .map(|c| ComplexityClass::new(c).unwrap())
                 .for_each(|c| {
                     (0..=RETRIALS).into_iter().for_each(|_| {
                         println!("Generating puzzle for n = {n} and c = {c}");
