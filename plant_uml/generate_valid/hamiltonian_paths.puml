@@ -1,0 +1,30 @@
+@startuml
+!include style_macros.puml
+!include hamiltonian_path.puml
+!procedure $CollectHamiltonianPaths($arg)
+    :Extract all vertices V from $G;
+    :Initialize HamiltonianPaths[] as empty;
+
+    while (Unvisited vertices in V?) is (Yes)
+        :Select next vertex S;
+        :Mark S as visited;
+        $StyledRectangle("ComputeHamiltonianPath", "brown", "$G, $F, S", "Computes Hamiltonian Path for a given starting vertex.")
+
+        if (Hamiltonian Path found?) then (Yes)
+            :Store the found path in HamiltonianPaths[];
+        endif
+    endwhile
+
+    if (HamiltonianPaths[] is empty?) then (Yes)
+        :Print "No Hamiltonian Paths found in G";
+    else (No)
+        :Print "Collected Hamiltonian Paths:";
+        :Display HamiltonianPaths[];
+    endif
+!endprocedure
+
+start
+  $StyledRectangle("CollectHamiltonianPaths", "red", "G, F", "Collects all Hamiltonian Paths in the given graph.")
+stop
+
+@enduml

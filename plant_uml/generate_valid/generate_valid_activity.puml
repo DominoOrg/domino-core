@@ -1,0 +1,35 @@
+@startuml generate_activity
+start
+!include style_macros.puml
+
+!procedure $InputValidation($arg)
+:User requires a new puzzle with a specific length 'n',
+the desired complexity 'c'
+and an indication on whether is has to be randomly generated or not;
+:'n' and 'c' get validated;
+if (n or c invalid?) is (yes) then
+end
+endif
+!endprocedure
+
+!procedure $GenerateSolution($arg)
+:Hierholzer gets applied to retrieve an eulerian cycle;
+:A sequence is generated from the eulerian cycle;
+!endprocedure
+
+!procedure $GeneratePuzzle($arg)
+:All the hamiltonian cycles get computed;
+:According to n, n-1/2 cycles will be reinserted at the position they appear in the solution;
+while (n-1/2 hamiltonian paths are reinserted?) is (no)
+:An hamiltonian path gets reinserted and excluded from the next reinsertions;
+endwhile
+!endprocedure
+
+$StyledRectangle("InputValidation","lightblue","1","Here input gets validated")
+:A regular graph from 'n' gets built;
+$StyledRectangle("GenerateSolution","lightcoral","1","Here solution gets generated")
+$StyledRectangle("GeneratePuzzle","lightgreen","1","Here solution gets generated")
+end
+
+@enduml
+

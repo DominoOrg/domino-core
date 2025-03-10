@@ -7,5 +7,5 @@ mod types;
 pub use error::DominoError;
 pub use execute_model::Model;
 pub use get_n::get_n;
-pub use graphs::{Arc, Graph, Node, find_eulerian_cycle, get_missing_tiles};
+pub use graphs::{find_eulerian_cycle, get_missing_tiles, Arc, Graph, Node};
 pub use types::{Puzzle, Solution, Tile};

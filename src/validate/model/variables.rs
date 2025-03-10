@@ -3,8 +3,8 @@
 //! It includes structures and functions to manage variables, generate tile combinations,
 //! and construct labeled variables for a given puzzle.
 
-use std::collections::HashMap;
 use crate::utils::{get_n, DominoError, Puzzle, Tile};
+use std::collections::HashMap;
 
 /// Represents a decision variable in the optimization model.
 ///
@@ -71,7 +71,8 @@ impl Variables {
         }
 
         self.vars.push(variable.clone());
-        self.by_label.insert(variable.label.clone(), variable.clone());
+        self.by_label
+            .insert(variable.label.clone(), variable.clone());
         insert_or_update(&mut self.by_tile, variable.tile, variable.clone());
         insert_or_update(&mut self.by_position, variable.position, variable);
     }

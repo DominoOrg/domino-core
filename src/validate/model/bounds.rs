@@ -1,12 +1,12 @@
 //! This module defines constraints for the optimization model, ensuring valid tile placement and adjacency rules.
 
-use crate::utils::{get_n, Tile};
 use super::{
     helpers::{collect_labels, create_bound_string},
     stringify_variables,
     variables::{Variable, Variables},
     Puzzle,
 };
+use crate::utils::{get_n, Tile};
 
 /// Generates constraints ensuring each tile is used exactly once.
 ///

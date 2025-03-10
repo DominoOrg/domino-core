@@ -1,0 +1,20 @@
+@startuml
+
+!procedure $SetRectangleStyle($color)
+  skinparam {
+    RectangleBorderColor $color
+    RectangleFontColor $color
+  }
+!endprocedure
+
+!procedure $StyledRectangle($name, $color, $arg, $note)
+  $SetRectangleStyle($color)
+  rectangle $name {
+    note right
+      $note
+    end note
+    %invoke_procedure("$"+$name, $arg)
+  }
+!endprocedure
+
+@enduml

@@ -1,8 +1,8 @@
 //! This module provides utility functions and macros for sorting variable labels,
 //! formatting variable collections, and constructing constraint expressions.
 
-use std::cmp::Ordering;
 use super::variables::Variable;
+use std::cmp::Ordering;
 
 /// Compares two variable labels and determines their ordering.
 ///

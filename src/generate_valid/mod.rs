@@ -66,8 +66,13 @@ fn generate_puzzle(
         removed_tiles.shuffle(&mut thread_rng());
 
         // The first tile to be reinserted
+        // We avoid double tiles for the first tile since their are always neutral
+        // to the orientation of whole puzzle and so they produce an invalid puzzle
         let anchor: usize = (0..solution.len())
             .into_iter()
+            .enumerate()
+            .filter(|(_, pos)| solution[*pos].0 == solution[*pos].1)
+            .map(|(i, _)| i)
             .choose(&mut thread_rng())
             .unwrap();
 
@@ -76,6 +81,32 @@ fn generate_puzzle(
             reinsert_tile_and_check(starting_puzzle, solution.clone(), removed_tiles, c, anchor);
         puzzle
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{classify::NUMBER_OF_CLASSES, ComplexityClass};
+
+    use super::generate_valid_puzzle;
+
+    #[test]
+    fn it_works() {
+        const RETRIALS: usize = 10;
+        (3..=4).into_iter().for_each(|n| {
+            (1..=NUMBER_OF_CLASSES)
+                .into_iter()
+                .rev()
+                .map(|c| ComplexityClass::new(c).unwrap())
+                .for_each(|c| {
+                    (0..=RETRIALS).into_iter().for_each(|_| {
+                        println!("Generating puzzle for n = {n} and c = {c}");
+                        let puzzle = generate_valid_puzzle(n)(c);
+                        assert_eq!(puzzle.is_ok(), true, "puzzle should be valid");
+                        println!("*********SUCCESS*********\n\n---------------\n\n");
+                    });
+                });
+        });
+    }
 }
 
 // #[cfg(test)]

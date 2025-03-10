@@ -118,7 +118,10 @@ fn is_valid_placement(puzzle: &Puzzle, tile: Tile, position: usize) -> bool {
 
     puzzle.iter().all(|&slot| slot != Some(tile))
         && (puzzle[(puzzle_length + position - 1) % puzzle_length].is_none()
-            || puzzle[(puzzle_length + position - 1) % puzzle_length].unwrap().1 == tile.0)
+            || puzzle[(puzzle_length + position - 1) % puzzle_length]
+                .unwrap()
+                .1
+                == tile.0)
         && (puzzle[(position + 1) % puzzle_length].is_none()
             || puzzle[(position + 1) % puzzle_length].unwrap().0 == tile.1)
 }

@@ -1,6 +1,6 @@
 use bencher::format_duration;
 use domino_lib::{
-    classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, ComplexityClass, Puzzle,
+    classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, ComplexityClass,
 };
 use std::{
     cell::RefCell,
@@ -13,24 +13,6 @@ mod bencher;
 fn bench_test_suite() -> Vec<usize> {
     // todo!("Add more lengths to test suite");
     return vec![5];
-}
-
-fn mock_puzzle(n: usize, complexity: ComplexityClass) -> Puzzle {
-    let l = if n % 2 == 0 {
-        (n + 1) * (n + 2) / 2
-    } else {
-        (n + 1) * (n + 1) / 2
-    };
-    let max_hole = (l as f32 - (n as f32 / 2.0).floor()) as usize;
-    let log_factor: f32 = match complexity.0 {
-        1 => 1.0 / l as f32,
-        2 => 4.0 / 7.0,
-        3 => 6.0 / 7.0,
-        _ => 0.0,
-    };
-    let max_index = (max_hole as f32 * log_factor.sqrt()).ceil() as usize;
-    let puzzle = generate_puzzle(n, max_index, false);
-    puzzle
 }
 
 // The number of tests to run to have better accuracy on time estimations to execute the tasks,

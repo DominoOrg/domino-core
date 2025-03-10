@@ -30,35 +30,34 @@ mod model;
 /// - If `Model::execute()` fails to execute the computed model.
 /// - If the extracted objective value does not match the expected missing tile count.
 pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), DominoError> {
-  // Compute a string-based model representation for the puzzle and solution.
-  let string_model = compute_model(puzzle, solution)?;
+    // Compute a string-based model representation for the puzzle and solution.
+    let string_model = compute_model(puzzle, solution)?;
 
-  // Execute the model to obtain a solver result.
-  let solver_result = Model::execute(string_model.clone());
+    // Execute the model to obtain a solver result.
+    let solver_result = Model::execute(string_model.clone());
 
-  // Extract the objective value from the solver result.
-  // May also see the values of the variables through translator._get_variables() method
-  let objective_value = solver_result.map(|translator| translator.get_objective());
+    // Extract the objective value from the solver result.
+    // May also see the values of the variables through translator._get_variables() method
+    let objective_value = solver_result.map(|translator| translator.get_objective());
 
-  // Count the number of missing tiles in the puzzle.
-  let missing_tiles = puzzle.iter().filter(|tile| tile.is_none()).count() as f64;
+    // Count the number of missing tiles in the puzzle.
+    let missing_tiles = puzzle.iter().filter(|tile| tile.is_none()).count() as f64;
 
-  // Validate the objective value against the expected missing tiles count.
-  if let Ok(objective) = objective_value {
-      if objective == missing_tiles {
-          Ok(())
-      } else {
-          Err(DominoError::ModelError(
-              "Invalid objective value".to_string(),
-          ))
-      }
-  } else {
-      Err(DominoError::ModelError(
-          "Model failed execution".to_string(),
-      ))
-  }
+    // Validate the objective value against the expected missing tiles count.
+    if let Ok(objective) = objective_value {
+        if objective == missing_tiles {
+            Ok(())
+        } else {
+            Err(DominoError::ModelError(
+                "Invalid objective value".to_string(),
+            ))
+        }
+    } else {
+        Err(DominoError::ModelError(
+            "Model failed execution".to_string(),
+        ))
+    }
 }
-
 
 #[cfg(test)]
 mod tests {

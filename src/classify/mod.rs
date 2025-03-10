@@ -1,9 +1,11 @@
 use crate::{utils::get_n, DominoError, Puzzle};
 pub use complexity_class::ComplexityClass;
+use formula::{compute_threshold, find_threshold_index};
 
 mod complexity_class;
+mod formula;
 
-const NUMBER_OF_CLASSES: usize = 3;
+pub const NUMBER_OF_CLASSES: usize = 3;
 
 /// Classifies the given puzzle and returns its complexity as a `ComplexityClass`.
 ///
@@ -48,6 +50,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
     } else {
         l as f32 - (n as f32 + 1.0)
     };
+    // let max_hole = l as f32 - (n as f32 / 2.0);
 
     // Detect holes within the puzzle. Each hole is represented as a tuple (start_index, end_index).
     let holes: Vec<(usize, usize)> = detect_holes(puzzle);
@@ -58,7 +61,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
     }
 
     // Compute and return the complexity ComplexityClass based on the detected holes and derived metrics.
-    let class = compute_complexity(holes, max_hole, l, is_planar, n);
+    let class = compute_complexity(holes, max_hole, l);
     class
 }
 
@@ -97,13 +100,12 @@ pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize)
         l - (n as f32 + 1.0)
     };
 
-    // The forward classification formula is:
-    //     class = floor(2 * relative_complexity + 1)
-    // For a given class `c`, valid relative_complexity values lie in:
-    //     [ (c - 1)/2, c/2 )
-    let lower_relative = (class.0 as f32 - 1.0) / 2.0;
-    let upper_relative = class.0 as f32 / 2.0;
-
+    // Inverted formula to compute min-max values within 0.0-1.0 range
+    // that can generate the current complexity
+    // The class is in [1,NUMBER_OF_CLASSES] so panics only if the ComplexityClass implementation
+    // changes and has no more the check on the values
+    let (lower_relative, upper_relative) =
+        inverse_class_mapping(class).expect("The provided class is invalid");
     // Invert the formula to compute the number of tiles to remove:
     //     t = relative_complexity * max_hole
     // so t must lie in:
@@ -111,9 +113,9 @@ pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize)
     let lower_bound_float = lower_relative * max_hole;
     let upper_bound_float = upper_relative * max_hole;
 
-    // The minimum valid number of tiles is the ceiling of the lower bound.
+    // The minimum valid number of tiles is the flooring of the lower bound.
     // However, we ensure it is at least 1 (since a valid puzzle must have at least one removed tile).
-    let min_tiles = std::cmp::max(1, lower_bound_float.ceil() as usize);
+    let min_tiles = std::cmp::max(1, lower_bound_float.floor() as usize);
 
     // The maximum valid number of tiles is the largest integer strictly less than the upper bound.
     let max_tiles = if upper_bound_float.fract() == 0.0 {
@@ -122,14 +124,64 @@ pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize)
         upper_bound_float.floor() as usize
     };
 
+    // Ensure the maximum is not over the maximum number of tiles removable.
+    let mut max_tiles = std::cmp::min(max_tiles, max_hole as usize);
+
+    // If the class is equal to the max NUMBER_OF_CLASSES, ensure the maximum is the maximum number of tiles removable.
+    if class == NUMBER_OF_CLASSES {
+        max_tiles = max_hole as usize;
+    }
+
     // Ensure that the maximum is not below the minimum.
-    let max_tiles = if max_tiles < min_tiles {
-        min_tiles
+    let (min_tiles, max_tiles) = if max_tiles < min_tiles {
+        (max_tiles, min_tiles)
     } else {
-        max_tiles
+        (min_tiles, max_tiles)
     };
 
     (min_tiles, max_tiles)
+}
+
+/// Returns the min and max decimal values that could have produced a given class.
+///
+/// This function performs an inverse mapping from the computed class (1 to NUMBER_OF_CLASSES)
+/// back to the original `x` range.
+///
+/// # Arguments
+///
+/// * `class` - The computed class value (expected to be in `[1, NUMBER_OF_CLASSES]`)
+///
+/// # Returns
+///
+/// A tuple `(min_x, max_x)` representing the range of decimal values that
+/// could have resulted in the given class, or `None` if the class is out of bounds.
+///
+/// # Examples
+///
+/// ```
+/// const NUMBER_OF_CLASSES: usize = 3;
+///
+/// fn compute_threshold(class: usize) -> f32 {
+///     class as f32 / NUMBER_OF_CLASSES as f32
+/// }
+///
+/// let (min_x, max_x) = inverse_class_mapping(2).unwrap();
+/// assert_eq!(min_x, compute_threshold(1));
+/// assert_eq!(max_x, compute_threshold(2));
+/// ```
+fn inverse_class_mapping(class: ComplexityClass) -> Option<(f32, f32)> {
+    if class < 1 || class > NUMBER_OF_CLASSES {
+        return None;
+    }
+
+    let min_x = if class == 1 {
+        0.0
+    } else {
+        compute_threshold(class.0 - 1)
+    };
+    let max_x = compute_threshold(class.0);
+
+    Some((min_x, max_x))
 }
 
 /// Computes the overall complexity ComplexityClass of a puzzle.
@@ -152,19 +204,18 @@ pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize)
 fn compute_complexity(
     holes: Vec<(usize, usize)>,
     max_hole: f32,
-    len: usize,
-    is_planar: bool,
-    n: usize,
+    len: usize
 ) -> Result<ComplexityClass, DominoError> {
-    // Calculate the absolute complexity from the detected holes.
-    let absolute_complexity = compute_absolute_complexity(holes.clone(), max_hole);
+    // Calculate the absolute complexity from the detected holes
+    // The returned complexity is relative to the hardest case possible (1 hole with the max size).
+    // It may exceed 1.0 if multiple holes are present.
+    let absolute_complexity = compute_absolute_complexity(holes.clone(), max_hole, len);
 
-    // Normalize the absolute complexity to obtain a relative complexity score.
-    let relative_complexity =
-        normalize_complexity(absolute_complexity, len, holes, max_hole, is_planar, n);
+    // Normalize the absolute complexity to obtain a relative complexity score between 0.0 and 1.0.
+    let relative_complexity = absolute_complexity.clamp(0.0, 1.0);
 
     // Convert the relative complexity into an integer ComplexityClass.
-    let class = (relative_complexity * 2.0 + 1.0).floor() as usize;
+    let class = find_threshold_index(relative_complexity);
     ComplexityClass::new(class)
 }
 
@@ -181,15 +232,28 @@ fn compute_complexity(
 /// # Returns
 ///
 /// The absolute complexity as a floating-point value.
-fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: f32) -> f32 {
+fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: f32, len: usize) -> f32 {
+    // Ensures we don't incour into a division by 0, returning 0.0
+    if holes.is_empty() {
+        return 0.0;
+    }
+
     // Calculate a factor that decreases as the number of holes increases.
     let number_of_holes_factor = 1.0 / ((holes.len() as f32).powf(0.1));
 
     // Sum the squared normalized lengths of each hole.
     let length_factor = holes
+        .clone()
         .into_iter()
         .map(|hole| {
-            let hole_length = hole.1.saturating_sub(hole.0) as f32;
+            let hole_length = if hole.1 > hole.0 {
+              hole.1.saturating_sub(hole.0) as f32
+            } else {
+              println!("({len} - {}) + {}", hole.0, hole.1);
+              ((len - hole.0) + hole.1) as f32
+            };
+            println!("hole: {hole:?}, hole_length: {hole_length}");
+            println!("number_of_holes_factor: {number_of_holes_factor} hole_lenght: {hole_length} length_factor: {}", (hole_length / max_hole).powf(2.0));
             (hole_length / max_hole).powf(2.0)
         })
         .sum::<f32>();
@@ -198,68 +262,20 @@ fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: f32) -> f32
     number_of_holes_factor * length_factor
 }
 
-/// Normalizes the absolute complexity to yield a relative complexity score.
-///
-/// The normalization takes into account a base measure derived from the puzzle length and the number of holes,
-/// adjusting for whether the puzzle is planar or not.
-///
-/// # Arguments
-///
-/// * `num` - The absolute complexity value computed from the puzzle's holes.
-/// * `len` - The derived length `l` from the puzzle's dimension.
-/// * `holes` - A vector of tuples representing the detected holes.
-/// * `max_hole` - The maximum allowed hole length used for normalization.
-/// * `is_planar` - A boolean indicating whether the puzzle is planar (n ≤ 3).
-/// * `n` - The puzzle's dimension.
-///
-/// # Returns
-///
-/// A normalized (relative) complexity as a floating-point value.
-fn normalize_complexity(
-    num: f32,
-    len: usize,
-    holes: Vec<(usize, usize)>,
-    max_hole: f32,
-    is_planar: bool,
-    n: usize,
-) -> f32 {
-    // Calculate a base measure 's' that depends on planarity.
-    // For planar puzzles, s = len - (number of holes).
-    // For non-planar puzzles, s = len - (n + 2).
-    let s = if is_planar {
-        len - holes.len()
-    } else {
-        len - (n + 2)
-    };
-
-    // Determine the number of complete `max_hole` segments that fit into s.
-    let n0 = (s as f32 / max_hole).floor();
-
-    // Calculate the remainder after accounting for the complete segments.
-    let r = s as f32 - (n0 * max_hole);
-
-    // Compute two candidate normalization factors:
-    // 1. Based on the squared ratio of the remainder to max_hole.
-    // 2. Based solely on the number of complete segments (n0).
-    let max = f32::max(
-        (n0 + (r / max_hole).powf(2.0)) / (n0 + 1.0).powf(0.1),
-        n0.powf(0.9),
-    );
-
-    // Normalize the absolute complexity by the maximum candidate factor.
-    num / max
-}
-
 /// Detects holes in the given puzzle and returns their index ranges.
 ///
 /// A "hole" is defined as a contiguous sequence of missing tiles (`None` values)
-/// whose boundaries are determined by the presence of a tile (`Some`) on either side.
+/// whose boundaries are determined by the presence of a tile (`Some`) on both sides.
 /// This function treats the puzzle as cyclic; that is, the neighbor of the first element
 /// is the last element, and the neighbor of the last element is the first element.
+/// If a hole spans the end and beginning of the puzzle, it is treated as a single
+/// contiguous hole rather than two separate ones.
+/// If the puzzle consists entirely of `None` values, it is considered a single hole.
 ///
 /// # Arguments
 ///
-/// * `puzzle` - A reference to the puzzle represented as a `Vec<Option<Tile>>`, where `Tile` is a tuple struct.
+/// * `puzzle` - A reference to the puzzle represented as a `Vec<Option<Tile>>`,
+///   where `Tile` is a tuple struct.
 ///
 /// # Returns
 ///
@@ -270,28 +286,47 @@ pub fn detect_holes(puzzle: &Puzzle) -> Vec<(usize, usize)> {
     let len = puzzle.len();
     let mut holes = Vec::new();
     let mut maybe_start: Option<usize> = None;
+    let mut wraps_around = false;
+    let mut has_some = false;
 
+    // Iterate through the puzzle to detect holes.
     for i in 0..len {
         if puzzle[i].is_none() {
-            // If we haven't marked the start of a hole yet, do so now.
+            // Mark the start of a new hole if not already marked.
             if maybe_start.is_none() {
                 maybe_start = Some(i);
             }
-        } else if let Some(start) = maybe_start.take() {
-            // If we reach a present tile and had a started hole, store the hole range.
-            holes.push((start, i));
+        } else {
+            has_some = true; // Mark that we have at least one Some value.
+            if let Some(start) = maybe_start.take() {
+                // If a hole was being tracked and a tile (`Some`) is found, finalize the hole range.
+                holes.push((start, i));
+            }
         }
     }
 
-    // Handle wrap-around case where the hole extends to the end and connects to the beginning.
+    // Handle the case where a hole extends to the end of the puzzle.
     if let Some(start) = maybe_start {
         if !holes.is_empty() && holes[0].0 == 0 {
-            // Merge wrap-around hole with the first detected hole.
+            // If the first hole starts at index 0, it means the hole wraps around.
+            wraps_around = true;
             holes[0] = (start, holes[0].1);
         } else {
-            // Otherwise, add the hole separately.
+            // Otherwise, add the hole as a separate entry.
             holes.push((start, len));
         }
+    }
+
+    // Merge the last and first holes if they form a cyclic sequence.
+    if wraps_around && holes.len() > 1 {
+        let first = holes.remove(0); // Remove the first hole (which starts at 0).
+        let last = holes.pop().unwrap(); // Take the last hole.
+        holes.insert(0, (last.0, first.1)); // Merge the two as a single hole.
+    }
+
+    // If the entire puzzle is a hole (no `Some` elements exist), return it as a single hole.
+    if !has_some {
+        return vec![(0, len)];
     }
 
     holes
@@ -299,289 +334,210 @@ pub fn detect_holes(puzzle: &Puzzle) -> Vec<(usize, usize)> {
 
 #[cfg(test)]
 mod tests {
-    use super::classify_puzzle;
-    use crate::{Puzzle, Tile};
+    use super::*;
+    use crate::{ComplexityClass, DominoError, Puzzle, Tile};
 
-    #[test]
-    fn test_empty_puzzle_should_return_error() {
-        // Empty puzzle should be classified as error
-        let puzzle: Vec<Option<Tile>> = vec![];
-        let complexity = super::classify_puzzle(&puzzle);
-        assert!(complexity.is_err());
-    }
-
-    #[test]
-    fn test_puzzle_with_invalid_length_should_return_error() {
-        // Puzzle with invalid length should be classified as error
-        let puzzle: Vec<Option<Tile>> = vec![None, None, None, None, None, None, None];
-        let complexity = super::classify_puzzle(&puzzle);
-        assert!(complexity.is_err());
-    }
-
-    #[test]
-    fn test_puzzle_with_all_none_tiles_should_return_error() {
-        // Puzzle with only all None tiles should be classified as error
-        let puzzle: Vec<Option<Tile>> = vec![None, None, None, None, None, None, None, None];
-        let complexity = super::classify_puzzle(&puzzle);
-        assert!(complexity.is_err());
-    }
-
-    #[test]
-    fn test_puzzle_with_all_some_tiles_should_return_error() {
-        // Puzzle with only all Some tiles should be classified as error
-        let puzzle: Vec<Option<Tile>> = vec![
-            Some(Tile(0, 1)),
-            Some(Tile(1, 1)),
-            Some(Tile(1, 2)),
-            Some(Tile(2, 2)),
-            Some(Tile(2, 3)),
-            Some(Tile(3, 3)),
-            Some(Tile(3, 0)),
-            Some(Tile(0, 0)),
-        ];
-        let complexity = super::classify_puzzle(&puzzle);
-        assert!(complexity.is_err());
-    }
-
-    /// Computes the expected puzzle length for a given puzzle dimension `n`
-    /// using the same formulas as in `classify_puzzle`.
-    fn puzzle_length(n: usize) -> usize {
-        if n % 2 == 0 {
-            (n + 1) * (n + 2) / 2
-        } else {
-            (n + 1) * (n + 1) / 2
-        }
-    }
-
-    /// Builds a puzzle (Vec<Option<Tile>>) for a given puzzle dimension `n`
-    /// and inserts a single contiguous hole of length `hole_length` starting
-    /// at index `hole_start` (wrap-around is supported).
-    fn build_puzzle_with_hole(n: usize, hole_start: usize, hole_length: usize) -> Puzzle {
-        let len = puzzle_length(n);
-        // Fill with dummy Some(Tile) values.
-        let mut puzzle: Vec<Option<Tile>> =
-            (0..len).map(|i| Some(Tile(i as i32, i as i32))).collect();
-
-        // Insert the hole (set the specified contiguous indices to None).
-        for j in 0..hole_length {
-            let idx = (hole_start + j) % len;
-            puzzle[idx] = None;
+    /// Creates a mock puzzle based on the given parameters.
+    ///
+    /// **Input:**
+    /// - `size`: The number of tiles in the puzzle.
+    /// - `holes`: A vector of indices representing missing tiles.
+    ///
+    /// **Output:**
+    /// - A `Puzzle` with `Some(Tile(0,0))` at non-hole indices and `None` at hole indices.
+    fn mock_puzzle(size: usize, holes: Vec<usize>) -> Puzzle {
+        let mut puzzle = vec![Some(Tile(0, 0)); size];
+        for index in holes {
+            puzzle[index] = None;
         }
         puzzle
     }
 
-    // --- Tests for planar puzzles (n <= 3) ---
-
-    // n = 2 (planar): length = (2+1)*(2+2)/2 = 6, max_hole = 6 - floor(2/2) = 5.
-    mod n2 {
-        use super::*;
-        const N: usize = 2;
-
-        #[test]
-        fn test_classification_class1_n2() {
-            // Minimal hole (length = 1) yields relative complexity = (1/5)² ≈ 0.04.
-            let puzzle = build_puzzle_with_hole(N, 1, 1);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one small hole should classify successfully");
-            assert_eq!(
-                classification.0, 1,
-                "n=2: Minimal hole should be classified as 1"
-            );
+    /// Helper function to generate a list of test cases
+    fn test_cases() -> Vec<(ComplexityClass, usize, (usize, usize))> {
+        let mut cases = Vec::new();
+        for n in [3, 4, 5, 6] {
+            for class in 1..=NUMBER_OF_CLASSES {
+                let expected = tiles_to_remove_range(ComplexityClass::new(class).unwrap(), n);
+                cases.push((ComplexityClass::new(class).unwrap(), n, expected));
+            }
         }
+        cases
+    }
 
-        #[test]
-        fn test_classification_class2_n2() {
-            // Moderate hole (length = 4) gives (4/5)² = 0.64 → floor(2*0.64 + 1) = 2.
-            let puzzle = build_puzzle_with_hole(N, 1, 4);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one moderate hole should classify successfully");
+    #[test]
+    fn test_tiles_to_remove_range() {
+        for (class, n, expected) in test_cases() {
             assert_eq!(
-                classification.0, 2,
-                "n=2: Moderate hole should be classified as 2"
-            );
-        }
-
-        #[test]
-        fn test_classification_class3_n2() {
-            // Maximum hole (length = 5) gives (5/5)² = 1 → floor(2*1 + 1) = 3.
-            let puzzle = build_puzzle_with_hole(N, 1, 5);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one large hole should classify successfully");
-            assert_eq!(
-                classification.0, 3,
-                "n=2: Maximum hole should be classified as 3"
+                tiles_to_remove_range(class, n),
+                expected,
+                "Failed for class {:?} and n = {}",
+                class,
+                n
             );
         }
     }
-
-    // n = 3 (planar): length = (3+1)²/2 = 8, max_hole = 8 - floor(3/2) = 7.
-    mod n3 {
+    mod classify_puzzle_tests {
         use super::*;
-        const N: usize = 3;
 
+        /// Tests classification of an empty puzzle.
+        ///
+        /// **Input:** A puzzle consisting entirely of `None` values.
+        /// **Expected Output:** `Err(DominoError::EmptyPuzzle)`.
         #[test]
-        fn test_classification_class1_n3() {
-            // Minimal hole (length = 1) yields (1/7)² ≈ 0.02.
-            let puzzle = build_puzzle_with_hole(N, 1, 1);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one small hole should classify successfully");
-            assert_eq!(
-                classification.0, 1,
-                "n=3: Minimal hole should be classified as 1"
-            );
+        fn test_classify_puzzle_empty_puzzle() {
+            let puzzle = mock_puzzle(8, (0..8).collect()); // All empty tiles
+            assert_eq!(classify_puzzle(&puzzle), Err(DominoError::EmptyPuzzle));
         }
 
+        /// Tests classification of a puzzle with no holes.
+        ///
+        /// **Input:** A puzzle containing only `Some(Tile(0,0))` values.
+        /// **Expected Output:** `Err(DominoError::InvalidLength)`.
         #[test]
-        fn test_classification_class2_n3() {
-            // Moderate hole (length = 5) yields (5/7)² ≈ 0.51.
-            let puzzle = build_puzzle_with_hole(N, 1, 5);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one moderate hole should classify successfully");
-            assert_eq!(
-                classification.0, 2,
-                "n=3: Moderate hole should be classified as 2"
-            );
-        }
-
-        #[test]
-        fn test_classification_class3_n3() {
-            // Maximum hole (length = 7) yields (7/7)² = 1.
-            let puzzle = build_puzzle_with_hole(N, 1, 7);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one large hole should classify successfully");
-            assert_eq!(
-                classification.0, 3,
-                "n=3: Maximum hole should be classified as 3"
-            );
+        fn test_classify_puzzle_no_holes() {
+            let puzzle = mock_puzzle(8, vec![]); // No holes
+            assert_eq!(classify_puzzle(&puzzle), Err(DominoError::InvalidLength));
         }
     }
 
-    // --- Tests for non-planar puzzles (n > 3) ---
-
-    // n = 4 (non-planar): length = (4+1)*(4+2)/2 = 15, max_hole = 15 - (4+1) = 10.
-    mod n4 {
+    mod detect_holes_tests {
         use super::*;
-        const N: usize = 4;
 
+        /// Tests hole detection in a puzzle.
+        ///
+        /// **Input:** A puzzle containing `Some(Tile(0,0))` and `None` values with two distinct hole regions.
+        /// **Expected Output:** A vector of hole indices correctly identifying the start and end of each hole.
         #[test]
-        fn test_classification_class1_n4() {
-            // Minimal hole (length = 1) yields a very small relative complexity.
-            let puzzle = build_puzzle_with_hole(N, 2, 1);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one small hole should classify successfully");
-            assert_eq!(
-                classification.0, 1,
-                "n=4: Minimal hole should be classified as 1"
-            );
+        fn test_classify_detect_holes_correctly() {
+            let puzzle = mock_puzzle(8, vec![1, 2, 4]);
+            let holes = detect_holes(&puzzle);
+            assert_eq!(holes, vec![(1, 3), (4, 5)]);
         }
 
+        /// Tests detection when there is a single hole spanning multiple positions.
+        ///
+        /// **Input:** A puzzle with a single hole spanning indices [3,6].
+        /// **Expected Output:** A single tuple (3,6).
         #[test]
-        fn test_classification_class2_n4() {
-            // Moderate hole (length = 8) gives a relative complexity in the range for classification 2.
-            let puzzle = build_puzzle_with_hole(N, 2, 8);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one moderate hole should classify successfully");
-            assert_eq!(
-                classification.0, 2,
-                "n=4: Moderate hole should be classified as 2"
-            );
+        fn test_classify_detect_holes_single_large_hole() {
+            let puzzle = mock_puzzle(8, vec![3, 4, 5]);
+            let holes = detect_holes(&puzzle);
+            assert_eq!(holes, vec![(3, 6)]);
         }
 
+        /// Tests detection of a hole that wraps around the end of the puzzle.
+        ///
+        /// **Input:** A puzzle where holes exist at the end and beginning.
+        /// **Expected Output:** The hole should be merged correctly as (6, 2).
         #[test]
-        fn test_classification_class3_n4() {
-            // Maximum hole (length = 10) gives a relative complexity of 1, yielding classification 3.
-            let puzzle = build_puzzle_with_hole(N, 2, 10);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one large hole should classify successfully");
-            assert_eq!(
-                classification.0, 3,
-                "n=4: Maximum hole should be classified as 3"
-            );
+        fn test_classify_detect_holes_wraparound() {
+            let puzzle = mock_puzzle(8, vec![6, 7, 0, 1]);
+            let holes = detect_holes(&puzzle);
+            assert_eq!(holes, vec![(6, 2)]);
         }
     }
 
-    // n = 5 (non-planar): length = (5+1)²/2 = 18, max_hole = 18 - (5+1) = 12.
-    mod n5 {
+    #[cfg(test)]
+    mod compute_complexity_tests {
         use super::*;
-        const N: usize = 5;
 
-        #[test]
-        fn test_classification_class1_n5() {
-            // Minimal hole (length = 1)
-            let puzzle = build_puzzle_with_hole(N, 3, 1);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one small hole should classify successfully");
-            assert_eq!(
-                classification.0, 1,
-                "n=5: Minimal hole should be classified as 1"
-            );
+        /// Helper function to create a puzzle with a single hole of a given length.
+        ///
+        /// **Input:**
+        /// - `n`: The dimension of the puzzle.
+        /// - `hole_size`: The number of consecutive tiles removed.
+        /// - `hole_start`: The index where the hole begins.
+        ///
+        /// **Output:**
+        /// - A `Puzzle` with `Some(Tile(0,0))` at non-hole indices and `None` at hole indices.
+        fn create_puzzle_with_hole(n: usize, hole_size: usize, hole_start: usize) -> Puzzle {
+            let total_size = if n % 2 == 0 {
+                (n + 1) * (n + 2) / 2
+            } else {
+                (n + 1) * (n + 1) / 2
+            };
+
+            let mut puzzle = vec![Some(Tile(0, 0)); total_size];
+            for i in 0..hole_size {
+                puzzle[(hole_start + i) % total_size] = None;
+            }
+            puzzle
         }
 
+        /// Tests complexity calculation for puzzles with n = 3 and various hole lengths.
+        ///
+        /// **Input:** Puzzles with `n = 3`, each having a single hole of different lengths.
+        /// **Expected Output:** `Ok(ComplexityClass)` ensuring successful complexity classification.
         #[test]
-        fn test_classification_class2_n5() {
-            // Moderate hole (length = 8) yields a relative complexity just above the threshold.
-            let puzzle = build_puzzle_with_hole(N, 3, 8);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one moderate hole should classify successfully");
-            assert_eq!(
-                classification.0, 2,
-                "n=5: Moderate hole should be classified as 2"
-            );
+        fn test_compute_complexity_n3_various_holes() {
+            let n = 3;
+            let total_size = (n + 1) * (n + 1) / 2;
+            let max_hole = total_size as f32 - (n as f32 / 2.0).floor();
+
+            for hole_size in 1..=max_hole as usize {
+                let puzzle = create_puzzle_with_hole(n, hole_size, 0);
+                let holes = detect_holes(&puzzle);
+                let complexity = compute_complexity(holes,max_hole,total_size);
+                let expected_abs = (hole_size as f32/max_hole).powf(2.0);
+                let expected_rel = expected_abs.clamp(0.0, 1.0);
+                let expected_class = find_threshold_index(expected_rel);
+
+                assert_eq!(complexity.ok(), Some(ComplexityClass(expected_class)), "Failed for hole_size = {}", hole_size);
+            }
         }
 
+        /// Tests complexity classification for a puzzle with n = 3 and a single large hole.
+        ///
+        /// **Input:** A puzzle of size `n = 3` with a single large hole spanning the maximum allowed length.
+        /// **Expected Output:** `Ok(ComplexityClass)`, verifying correct classification for large holes.
         #[test]
-        fn test_classification_class3_n5() {
-            // Maximum hole (length = 12)
-            let puzzle = build_puzzle_with_hole(N, 3, 12);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one large hole should classify successfully");
-            assert_eq!(
-                classification.0, 3,
-                "n=5: Maximum hole should be classified as 3"
-            );
+        fn test_compute_complexity_n3_large_hole() {
+            let n = 3;
+            let total_size = (n + 1) * (n + 1) / 2;
+            let max_hole = total_size as f32 - (n as f32 / 2.0).floor();
+            let puzzle = create_puzzle_with_hole(n, max_hole as usize, 0);
+
+            let holes = detect_holes(&puzzle);
+            let complexity = compute_complexity(holes,max_hole,total_size);
+
+            assert!(complexity.is_ok(), "Failed for a single large hole");
+        }
+
+        /// Tests complexity classification for a puzzle with n = 3 and multiple small holes.
+        ///
+        /// **Input:** A puzzle of size `n = 3` with multiple small holes at different positions.
+        /// **Expected Output:** `Ok(ComplexityClass)`, verifying the handling of multiple distinct holes.
+        #[test]
+        fn test_compute_complexity_n3_multiple_small_holes() {
+            let n = 3;
+            let total_size = (n + 1) * (n + 1) / 2;
+            let max_hole = total_size as f32 - (n as f32 / 2.0).floor();
+            let puzzle = mock_puzzle(total_size, vec![1, 3, 5]);
+
+            let holes = detect_holes(&puzzle);
+            let complexity = compute_complexity(holes,max_hole,total_size);
+
+            assert!(complexity.is_ok(), "Failed for multiple small holes");
         }
     }
 
-    // n = 6 (non-planar): length = (6+1)*(6+2)/2 = 28, max_hole = 28 - (6+1) = 21.
-    mod n6 {
-        use super::*;
-        const N: usize = 6;
+    /// Tests inverse class mapping for valid classes (1 to NUMBER_OF_CLASSES).
+    ///
+    /// **Input:** Valid `ComplexityClass` values from 1 to `NUMBER_OF_CLASSES`.
+    /// **Expected Output:** `(min_x, max_x)` computed using the function's logic.
+    #[test]
+    fn test_classify_inverse_class_mapping() {
+        for class_value in 1..=NUMBER_OF_CLASSES {
+            let class = ComplexityClass::new(class_value).unwrap();
+            let result = inverse_class_mapping(class);
+            assert!(result.is_some());
+            let (min_x, max_x) = result.unwrap();
+            let expected_min_x = compute_threshold(class_value - 1);
+            let expected_max_x = compute_threshold(class_value);
 
-        #[test]
-        fn test_classification_class1_n6() {
-            // Minimal hole (length = 1)
-            let puzzle = build_puzzle_with_hole(N, 4, 1);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one small hole should classify successfully");
-            assert_eq!(
-                classification.0, 1,
-                "n=6: Minimal hole should be classified as 1"
-            );
-        }
-
-        #[test]
-        fn test_classification_class2_n6() {
-            // For n=6, choose a moderate hole length.
-            // Calculations indicate that a hole length around 15 gives a relative complexity in the [0.5, 1) range.
-            let puzzle = build_puzzle_with_hole(N, 4, 15);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one moderate hole should classify successfully");
-            assert_eq!(
-                classification.0, 2,
-                "n=6: Moderate hole should be classified as 2"
-            );
-        }
-
-        #[test]
-        fn test_classification_class3_n6() {
-            // Maximum hole (length = 21)
-            let puzzle = build_puzzle_with_hole(N, 4, 21);
-            let classification = classify_puzzle(&puzzle)
-                .expect("Puzzle with one large hole should classify successfully");
-            assert_eq!(
-                classification.0, 3,
-                "n=6: Maximum hole should be classified as 3"
-            );
+            assert_eq!(min_x, expected_min_x);
+            assert_eq!(max_x, expected_max_x);
         }
     }
 }

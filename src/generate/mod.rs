@@ -2,8 +2,8 @@
 //!
 //! It includes a function to generate a puzzle with a valid Eulerian cycle and remove a specified number of tiles.
 
-use rand::Rng;
 use crate::{utils::find_eulerian_cycle, Graph, Puzzle, Solution, Tile};
+use rand::Rng;
 
 /// Generates a puzzle with a valid Eulerian cycle and removes a specified number of tiles.
 ///

@@ -54,21 +54,18 @@ pub(super) fn reinsert_tile_and_check(
     }
 
     // If the puzzle is valid, its complexity matches, and the removed count is within the valid bounds, we're done.
-    if validate_puzzle(&puzzle, &solution).is_ok()
-        && classify_puzzle(&puzzle).ok() == Some(c)
-        && current_removed_count >= min_removed
-        && current_removed_count <= max_removed
-    {
-        return Ok(puzzle);
+    let validation_result = validate_puzzle(&puzzle, &solution);
+    let classification_result = classify_puzzle(&puzzle);
+    let classification_option = classification_result.ok();
+
+    if validation_result.is_ok() && classification_option.is_some() {
+        if classification_option == Some(c)
+            && current_removed_count >= min_removed
+            && current_removed_count <= max_removed
+        {
+            return Ok(puzzle);
+        }
     }
-
-    println!(
-        "After reinsertion: puzzle validity = {:?}, classification = {:?} for puzzle \n{:?}",
-        validate_puzzle(&puzzle, &solution),
-        classify_puzzle(&puzzle),
-        &puzzle
-    );
-
     // If there are no more tiles to reinsert and the conditions are not met, return an error.
     if removed_tiles.is_empty() {
         return Err(DominoError::GenerationError(
@@ -79,16 +76,23 @@ pub(super) fn reinsert_tile_and_check(
     // Select a tile and a position for reinsertion.
     let (tile, position) = select_tile_and_position(&puzzle, &solution, anchor);
     // Attempt to reinsert the tile. Propagate an error if reinsertion fails.
-    let (new_puzzle, new_removed_tiles) = reinsert_tile(puzzle, removed_tiles, tile, position)
-        .or_else(|_| {
+    let (new_puzzle, new_removed_tiles) =
+        reinsert_tile(puzzle.clone(), removed_tiles, tile, position).or_else(|_| {
             Err(DominoError::GenerationError(
                 "Tile reinsertion failed during generation of the desired puzzle complexity."
                     .to_owned(),
             ))
         })?;
 
+    println!(
+          "After reinsertion: puzzle validity = {:?}, classification = {:?} for puzzle \n{:?}\n for solution: \n{solution:?}--------------\n",
+          validation_result,
+          classification_option,
+          &puzzle
+      );
+
     // Special case: for the highest complexity class, stop after the first successful insertion.
-    if Some(c) == ComplexityClass::new(3).ok() && validate_puzzle(&new_puzzle, &solution).is_ok() {
+    if Some(c) == classification_option && validate_puzzle(&new_puzzle, &solution).is_ok() {
         return Ok(new_puzzle);
     }
 
