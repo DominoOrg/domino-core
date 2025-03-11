@@ -1,6 +1,9 @@
+mod hamitonians;
+
 use crate::utils::find_eulerian_cycle;
 use crate::{ComplexityClass, DominoError, Node};
-use crate::{Graph, Puzzle, Solution, Tile};
+use crate::{Graph, Tournament, Puzzle, Solution, Tile};
+use hamitonians::compute_hamiltonian_cycles;
 use rand::Rng;
 use std::vec;
 
@@ -10,15 +13,22 @@ struct PuzzleData {
     n: usize,
     c: ComplexityClass,
     graph: Graph,
+    tournament: Option<Tournament>,
     solution: Solution,
 }
 
 /// Orchestrates the puzzle generation flow using currying (one input function)
-fn generate_valid_puzzle(n: usize) -> Box<dyn Fn(usize) -> Result<Puzzle, DominoError>> {
+pub fn generate_valid_puzzle(n: usize) -> Box<dyn Fn(usize) -> Result<Puzzle, DominoError>> {
     Box::new(move |c| ComplexityClass::new(c)
     .and_then(|valid_c|
       validate_input(n)(valid_c)
         .map(generate_solution)
+        .map(|puzzle_data| {
+          let solution = puzzle_data.solution.clone();
+          (puzzle_data, Tournament::new(solution).unwrap())
+        })
+        .map(|(puzzle_data, tournament)|
+          PuzzleData { tournament: Some(tournament), ..puzzle_data })
         .map(generate_puzzle)
     ))
 }
@@ -33,6 +43,7 @@ fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass)->Result<PuzzleData, D
             n,
             c,
             graph: Graph::regular(n),
+            tournament: None,
             solution: vec![], // Empty solution initially
         })
     }
@@ -40,29 +51,25 @@ fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass)->Result<PuzzleData, D
 }
 
 /// Reinserts Hamiltonian paths and returns updated PuzzleData
-fn generate_puzzle(puzzle: PuzzleData) -> Puzzle {
+fn generate_puzzle(puzzle_data: PuzzleData) -> Puzzle {
   let mut rng = rand::thread_rng();
-  let mut hamiltonian_cycles = compute_hamiltonian_cycles(puzzle.n);
-  let mut modified_solution = puzzle.solution.clone();
+  let mut hamiltonian_cycles = compute_hamiltonian_cycles(&puzzle_data);
+  let mut modified_solution = puzzle_data.solution.clone();
 
-  for _ in 0..(puzzle.n - 1) / 2 {
+  for _ in 0..(puzzle_data.n - 1) / 2 {
       if let Some(cycle) = hamiltonian_cycles.pop() {
           let index = rng.gen_range(0..modified_solution.len());
           // modified_solution.splice(index..index, cycle);
       }
   }
 
-  PuzzleData { solution: modified_solution, ..puzzle };
+  PuzzleData { solution: modified_solution, ..puzzle_data };
   vec![]
 }
 
-fn compute_hamiltonian_cycles(n: usize) -> Vec<Vec<Node>> {
-    todo!()
-}
-
 /// Generates a solution using Hierholzer's algorithm
-fn generate_solution(puzzle: PuzzleData) -> PuzzleData {
-  let cycle = find_eulerian_cycle(&puzzle.graph)(true);
+fn generate_solution(puzzle_data: PuzzleData) -> PuzzleData {
+  let cycle = find_eulerian_cycle(&puzzle_data.graph)(true);
   let sequence = cycle.windows(2)
   .map(|arc| {
       Tile(
@@ -72,7 +79,7 @@ fn generate_solution(puzzle: PuzzleData) -> PuzzleData {
   })
   .collect();
 
-  PuzzleData { solution: sequence, ..puzzle }
+  PuzzleData { solution: sequence, ..puzzle_data }
 }
 
 mod tests {

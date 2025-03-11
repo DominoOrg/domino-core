@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use rand::seq::IteratorRandom;
 
-use crate::{utils::Arc, Graph, Node};
+use crate::{Arc, Graph, Node};
 
 pub(super) struct NextNodeBuilder<'a> {
     graph: &'a Graph,

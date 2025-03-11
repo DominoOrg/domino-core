@@ -18,7 +18,7 @@ endif
 !endprocedure
 
 !procedure $GeneratePuzzle($arg)
-:All the hamiltonian cycles get computed;
+:All the hamiltonian cycles get computed over the tournament;
 :According to n, n-1/2 cycles will be reinserted at the position they appear in the solution;
 while (n-1/2 hamiltonian paths are reinserted?) is (no)
 :An hamiltonian path gets reinserted and excluded from the next reinsertions;
@@ -28,6 +28,7 @@ endwhile
 $StyledRectangle("InputValidation","lightblue","1","Here input gets validated")
 :A regular graph from 'n' gets built;
 $StyledRectangle("GenerateSolution","lightcoral","1","Here solution gets generated")
+:A tournament graph gets generated from the sequence;
 $StyledRectangle("GeneratePuzzle","lightgreen","1","Here puzzle gets generated")
 end
 

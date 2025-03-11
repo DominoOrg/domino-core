@@ -2,12 +2,9 @@
 !include style_macros.puml
 !include hamiltonian_path.puml
 !procedure $CollectHamiltonianPaths($arg)
-    :Extract all vertices V from $G;
     :Initialize HamiltonianPaths[] as empty;
 
-    while (Unvisited vertices in V?) is (Yes)
-        :Select next vertex S;
-        :Mark S as visited;
+    while (Hamiltonian paths are less than '(n-1)/2'?) is (Yes)
         $StyledRectangle("ComputeHamiltonianPath", "brown", "$G, $F, S", "Computes Hamiltonian Path for a given starting vertex.")
 
         if (Hamiltonian Path found?) then (Yes)
