@@ -1,67 +1,40 @@
 @startuml
-!procedure $Initialize_Data($dummy)
-    :Initialize path[] with -1;
-    :Set path[0] = S;
-!endprocedure
+!procedure $ComputeHamiltonianPath($arg)
+:Compute Hamiltonian Path (compute_hamiltonian_path_r);
+:Extract Nodes (extract_nodes);
+:Select Start Node (select_start_node);
+if (Start Node Exists?) then (Yes)
+    :Initialize Path and Arcs;
+    :Compute Path Recursively (compute_hamiltonian_path_recursive);
+else (No)
+    :Return Error (No Valid Path);
+    stop
+endif
 
-!procedure $Check_Initial_Arc_Availability($dummy)
-    :Check if |E - F| is sufficient for a Hamiltonian Path;
-!endprocedure
-
-!procedure $HamiltonianPathRecursion($k)
-    while (HamiltonianPathRecursion($k)?) is (Yes)
-        if (All vertices are in path[]?) then (Yes)
-            :Print "Hamiltonian Path Found";
-            stop
+:Recursive Computation (compute_hamiltonian_path_recursive);
+if (Path is Complete?) then (Yes)
+    :Return Path and Arcs;
+    stop
+else (No)
+    :Select Next Node (select_next_node);
+    if (Next Node Exists?) then (Yes)
+        :Process Next Node (process_next_node);
+        if (Arc is Valid?) then (Yes)
+            :Proceed to Next Node (proceed_to_next_node);
+            :Compute Path Recursively;
         else (No)
-            $StyledRectangle("Try_Next_Vertex", "lightblue", $k, "Attempts to select the next vertex in the path.")
-            $StyledRectangle("Validate_Move", "lightgreen", $k, "Checks if the selected move is valid based on graph constraints.")
-
-            if (Valid move?) then (Yes)
-                :Add to path[$k];
-                :Call_HamiltonianPath($k+1);
+            :Attempt Backtrack (attempt_backtrack);
+            if (Previous Node Exists?) then (Yes)
+                :Remove Last Node (remove_last_node);
+                :Compute Path Recursively with Previous Node;
             else (No)
-                $StyledRectangle("Handle_Invalid_Move", "orange", $k, "Handles invalid moves by checking alternatives or triggering backtracking.")
+                :Compute Path Recursively with Current Node;
             endif
         endif
-    endwhile
-    :Print "No Hamiltonian Path";
-!endprocedure
-
-
-!procedure $Try_Next_Vertex($k)
-    :Try next vertex in path[$k];
-!endprocedure
-
-!procedure $Validate_Move($k)
-    :Check if directed edge from path[$k-1] to path[$k] exists and is not in F;
-!endprocedure
-
-
-!procedure $Handle_Invalid_Move($k)
-    :Check if any remaining valid arcs exist;
-    if (No more valid arcs?) then (Yes)
-        :Print "Not enough arcs available to complete Hamiltonian Path";
-        stop
     else (No)
-        :Backtrack, remove path[$k];
-    endif
-!endprocedure
-
-!procedure $ComputeHamiltonianPath($arg)
-    :Extract vertices V and edges E from $G;
-    :Using forbidden arcs $F;
-    :Starting from vertex $S;
-
-    $StyledRectangle("Initialize_Data", "blue", 0, "Initializes path tracking variables.")
-    $StyledRectangle("Check_Initial_Arc_Availability", "green", 0, "Checks if the graph has enough edges to support a Hamiltonian Path.")
-
-    if (Not enough arcs available initially?) then (Yes)
-        :Print "Not enough arcs to compute a Hamiltonian Path";
+        :Return Error (No Valid Path);
         stop
     endif
-
-    $StyledRectangle("HamiltonianPathRecursion", "lightcoral", 1, "Performs recursive search for a Hamiltonian Path.")
+endif
 !endprocedure
-
 @enduml

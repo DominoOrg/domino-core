@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::Tile;
 
-use super::{Node, Arc};
+use super::{Arc, Node};
 
 /// A tournament graph where each node has an equal number of incoming and outgoing edges.
 #[derive(Debug, Default, Clone)]
@@ -93,7 +93,14 @@ mod tests {
         // This test ensures that a tournament where every node has a self-loop in addition
         // to other required edges is still considered valid.
         // The self-loops do not interfere with the tournament properties.
-        let arcs = vec![(0, 0).into(), (0, 1).into(), (1, 1).into(), (1, 2).into(), (2, 2).into(), (2, 0).into()];
+        let arcs = vec![
+            (0, 0).into(),
+            (0, 1).into(),
+            (1, 1).into(),
+            (1, 2).into(),
+            (2, 2).into(),
+            (2, 0).into(),
+        ];
         let result = Tournament::new(arcs);
         assert!(result.is_ok());
     }

@@ -204,7 +204,7 @@ fn inverse_class_mapping(class: ComplexityClass) -> Option<(f32, f32)> {
 fn compute_complexity(
     holes: Vec<(usize, usize)>,
     max_hole: f32,
-    len: usize
+    len: usize,
 ) -> Result<ComplexityClass, DominoError> {
     // Calculate the absolute complexity from the detected holes
     // The returned complexity is relative to the hardest case possible (1 hole with the max size).
@@ -478,12 +478,17 @@ mod tests {
             for hole_size in 1..=max_hole as usize {
                 let puzzle = create_puzzle_with_hole(n, hole_size, 0);
                 let holes = detect_holes(&puzzle);
-                let complexity = compute_complexity(holes,max_hole,total_size);
-                let expected_abs = (hole_size as f32/max_hole).powf(2.0);
+                let complexity = compute_complexity(holes, max_hole, total_size);
+                let expected_abs = (hole_size as f32 / max_hole).powf(2.0);
                 let expected_rel = expected_abs.clamp(0.0, 1.0);
                 let expected_class = find_threshold_index(expected_rel);
 
-                assert_eq!(complexity.ok(), Some(ComplexityClass(expected_class)), "Failed for hole_size = {}", hole_size);
+                assert_eq!(
+                    complexity.ok(),
+                    Some(ComplexityClass(expected_class)),
+                    "Failed for hole_size = {}",
+                    hole_size
+                );
             }
         }
 
@@ -499,7 +504,7 @@ mod tests {
             let puzzle = create_puzzle_with_hole(n, max_hole as usize, 0);
 
             let holes = detect_holes(&puzzle);
-            let complexity = compute_complexity(holes,max_hole,total_size);
+            let complexity = compute_complexity(holes, max_hole, total_size);
 
             assert!(complexity.is_ok(), "Failed for a single large hole");
         }
@@ -516,7 +521,7 @@ mod tests {
             let puzzle = mock_puzzle(total_size, vec![1, 3, 5]);
 
             let holes = detect_holes(&puzzle);
-            let complexity = compute_complexity(holes,max_hole,total_size);
+            let complexity = compute_complexity(holes, max_hole, total_size);
 
             assert!(complexity.is_ok(), "Failed for multiple small holes");
         }
