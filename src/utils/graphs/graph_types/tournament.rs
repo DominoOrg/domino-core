@@ -47,17 +47,27 @@ impl Tournament {
         }
 
         // Ensure each node has an equal number of incoming and outgoing edges
-        let n = nodes.len();
+        let n = nodes.len() - 1;
         if n > 1 {
             for &node in &nodes {
                 let in_deg = *in_degrees.get(&node).unwrap_or(&0);
                 let out_deg = *out_degrees.get(&node).unwrap_or(&0);
 
-                if in_deg != out_deg || in_deg + out_deg != 2 * (n - 1) {
-                    return Err(format!(
-                        "Invalid tournament: Node {} has in-degree {} and out-degree {}",
-                        node, in_deg, out_deg
-                    ));
+                if in_deg != out_deg {
+                    let err_msg = format!(
+                      "Invalid tournament: Node {} is unbalanced, has in-degree {} and out-degree {}",
+                      node, in_deg, out_deg
+                    );
+                    return Err(err_msg);
+                }
+
+                let expected_degree = ((n as f32 / 2.0).floor() as usize + 1) * 2;
+                if in_deg + out_deg != expected_degree {
+                  let err_msg = format!(
+                    "Invalid tournament: Node {} does not have the right number of arcs for a tournament, found {} expected {}",
+                    node, in_deg + out_deg, expected_degree
+                  );
+                  return Err(err_msg);
                 }
             }
         }
@@ -83,13 +93,13 @@ mod tests {
     fn test_tournament_invalid_self_loop() {
         // This test ensures that a tournament with an isolated self-loop is rejected,
         // as self-loops alone do not satisfy the tournament conditions.
-        let arcs = vec![(0, 0).into(), (0, 1).into(), (1, 0).into()];
+        let arcs = vec![(0, 0).into(), (0, 1).into(), (1, 1).into(), (1, 2).into()];
         let result = Tournament::new(arcs);
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_tournament_valid_with_self_loops() {
+    fn test_tournament_valid_with_self_loops_n2() {
         // This test ensures that a tournament where every node has a self-loop in addition
         // to other required edges is still considered valid.
         // The self-loops do not interfere with the tournament properties.
@@ -102,6 +112,36 @@ mod tests {
             (2, 0).into(),
         ];
         let result = Tournament::new(arcs);
+        println!("Result: {result:?}");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_tournament_valid_with_self_loops_n3() {
+        // This test ensures that a tournament where every node has a self-loop in addition
+        // to other required edges is still considered valid.
+        // The self-loops do not interfere with the tournament properties.
+        let arcs = vec![
+          (0,1).into(),(1,1).into(),(1,2).into(),(2,2).into(),(2,3).into(),
+          (3,3).into(),(3,0).into(),(0,0).into()
+        ];
+        let result = Tournament::new(arcs);
+        println!("Result: {result:?}");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_tournament_valid_with_self_loops_n4() {
+        // This test ensures that a tournament where every node has a self-loop in addition
+        // to other required edges is still considered valid.
+        // The self-loops do not interfere with the tournament properties.
+        let arcs = vec![
+          (0,1).into(),(1,1).into(),(1,4).into(),(4,4).into(),(4,2).into(),
+          (2,2).into(),(2,3).into(),(3,3).into(),(3,0).into(),(0,2).into(),
+          (2,1).into(),(1,3).into(),(3,4).into(),(4,0).into(),(0,0).into()
+        ];
+        let result = Tournament::new(arcs);
+        println!("Result: {result:?}");
         assert!(result.is_ok());
     }
 }

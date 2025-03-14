@@ -40,17 +40,9 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
         (n + 1) * (n + 1) / 2
     };
 
-    // Determine if the puzzle is planar (planar if n <= 3).
-    let is_planar = n <= 3;
-
     // Compute the maximum allowed hole length in a generic puzzle leaving it valid.
     // If planar, subtract floor(n/2) from l; otherwise, subtract (n + 1) from l.
-    let max_hole = if is_planar {
-        l as f32 - (n as f32 / 2.0).floor()
-    } else {
-        l as f32 - (n as f32 + 1.0)
-    };
-    // let max_hole = l as f32 - (n as f32 / 2.0);
+    let max_hole: usize = (n + 1) * 2 - 1;
 
     // Detect holes within the puzzle. Each hole is represented as a tuple (start_index, end_index).
     let holes: Vec<(usize, usize)> = detect_holes(puzzle);
@@ -203,7 +195,7 @@ fn inverse_class_mapping(class: ComplexityClass) -> Option<(f32, f32)> {
 /// A `ComplexityClass` representing the puzzle's complexity.
 fn compute_complexity(
     holes: Vec<(usize, usize)>,
-    max_hole: f32,
+    max_hole: usize,
     len: usize,
 ) -> Result<ComplexityClass, DominoError> {
     // Calculate the absolute complexity from the detected holes
@@ -232,7 +224,7 @@ fn compute_complexity(
 /// # Returns
 ///
 /// The absolute complexity as a floating-point value.
-fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: f32, len: usize) -> f32 {
+fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: usize, len: usize) -> f32 {
     // Ensures we don't incour into a division by 0, returning 0.0
     if holes.is_empty() {
         return 0.0;
@@ -246,15 +238,15 @@ fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: f32, len: u
         .clone()
         .into_iter()
         .map(|hole| {
-            let hole_length = if hole.1 > hole.0 {
-              hole.1.saturating_sub(hole.0) as f32
+            let hole_length: usize = if hole.1 > hole.0 {
+              hole.1.saturating_sub(hole.0)
             } else {
               println!("({len} - {}) + {}", hole.0, hole.1);
-              ((len - hole.0) + hole.1) as f32
+              (len - hole.0) + hole.1
             };
             println!("hole: {hole:?}, hole_length: {hole_length}");
-            println!("number_of_holes_factor: {number_of_holes_factor} hole_lenght: {hole_length} length_factor: {}", (hole_length / max_hole).powf(2.0));
-            (hole_length / max_hole).powf(2.0)
+            println!("number_of_holes_factor: {number_of_holes_factor} hole_lenght: {hole_length} length_factor: {}", (hole_length as f32/ max_hole as f32).powf(2.0));
+            (hole_length as f32/ max_hole as f32).powf(2.0)
         })
         .sum::<f32>();
 
@@ -473,13 +465,13 @@ mod tests {
         fn test_compute_complexity_n3_various_holes() {
             let n = 3;
             let total_size = (n + 1) * (n + 1) / 2;
-            let max_hole = total_size as f32 - (n as f32 / 2.0).floor();
+            let max_hole = total_size - ((n + 1) * 2 - 1);
 
             for hole_size in 1..=max_hole as usize {
                 let puzzle = create_puzzle_with_hole(n, hole_size, 0);
                 let holes = detect_holes(&puzzle);
                 let complexity = compute_complexity(holes, max_hole, total_size);
-                let expected_abs = (hole_size as f32 / max_hole).powf(2.0);
+                let expected_abs = (hole_size as f32 / max_hole as f32).powf(2.0);
                 let expected_rel = expected_abs.clamp(0.0, 1.0);
                 let expected_class = find_threshold_index(expected_rel);
 
@@ -500,7 +492,7 @@ mod tests {
         fn test_compute_complexity_n3_large_hole() {
             let n = 3;
             let total_size = (n + 1) * (n + 1) / 2;
-            let max_hole = total_size as f32 - (n as f32 / 2.0).floor();
+            let max_hole = total_size - ((n + 1) * 2 - 1);
             let puzzle = create_puzzle_with_hole(n, max_hole as usize, 0);
 
             let holes = detect_holes(&puzzle);
@@ -517,7 +509,7 @@ mod tests {
         fn test_compute_complexity_n3_multiple_small_holes() {
             let n = 3;
             let total_size = (n + 1) * (n + 1) / 2;
-            let max_hole = total_size as f32 - (n as f32 / 2.0).floor();
+            let max_hole = total_size - ((n + 1) * 2 - 1);
             let puzzle = mock_puzzle(total_size, vec![1, 3, 5]);
 
             let holes = detect_holes(&puzzle);

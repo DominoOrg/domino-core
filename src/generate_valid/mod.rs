@@ -2,7 +2,7 @@ mod hamiltonian;
 mod hamiltonians;
 
 use crate::utils::find_eulerian_cycle;
-use crate::{ComplexityClass, DominoError};
+use crate::{classify_puzzle, ComplexityClass, DominoError};
 use crate::{Graph, Puzzle, Solution, Tile, Tournament};
 use hamiltonians::compute_hamiltonian_cycles;
 use std::vec;
@@ -13,6 +13,8 @@ struct PuzzleData {
     graph: Graph,
     tournament: Option<Tournament>,
     solution: Solution,
+    puzzle: Option<Puzzle>,
+    c: ComplexityClass
 }
 
 /// Orchestrates the puzzle generation flow using currying (one input function)
@@ -30,6 +32,7 @@ pub fn generate_valid_puzzle(n: usize) -> Box<dyn Fn(usize) -> Result<Puzzle, Do
                     ..puzzle_data
                 })
                 .map(generate_puzzle)
+                .map(refine_puzzle)
         })
     })
 }
@@ -44,29 +47,52 @@ fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass) -> Result<PuzzleData,
                 graph: Graph::regular(n),
                 tournament: None,
                 solution: vec![], // Empty solution initially
+                puzzle: None, // Empty puzzle initially
+                c
             })
         }
     })
 }
 
-/// Reinserts Hamiltonian paths and returns updated PuzzleData
-fn generate_puzzle(puzzle_data: PuzzleData) -> Puzzle {
-    // let mut rng = rand::thread_rng();
-    // let hamiltonian_cycles = compute_hamiltonian_cycles(&puzzle_data);
-    // let mut modified_solution = puzzle_data.solution.clone();
+// Upates the puzzle until it does not match the required complexity
+fn refine_puzzle(puzzle_data: PuzzleData) -> Puzzle {
+  let mut puzzle = puzzle_data.puzzle.unwrap();
+  let expected_complexity_class = puzzle_data.c.0;
+  let mut actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
 
-    // for _ in 0..(puzzle_data.n - 1) / 2 {
-    //     if let Some(cycle) = hamiltonian_cycles.unwrap().pop() {
-    //         let index = rng.gen_range(0..modified_solution.len());
-    //         // modified_solution.splice(index..index, cycle);
-    //     }
-    // }
+  while actual_complexity_class < expected_complexity_class {
+    let index = puzzle_data.solution.iter().position(|&t| !puzzle.contains(&Some(t))).unwrap();
+    puzzle[index] = Some(puzzle_data.solution[index]);
+    actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
+  }
 
-    // PuzzleData {
-    //     solution: modified_solution,
-    //     ..puzzle_data
-    // };
-    vec![]
+  puzzle
+}
+
+/// Reinserts one tile per Hamiltonian path, reinserts all the double tiles and returns updated PuzzleData
+fn generate_puzzle(puzzle_data: PuzzleData) -> PuzzleData {
+  let mut puzzle: Puzzle = vec![None; puzzle_data.solution.len()];
+  let hamiltonians = compute_hamiltonian_cycles(&puzzle_data).unwrap();
+
+  hamiltonians.iter().for_each(|hamiltonian| {
+    let tile_to_reinsert: Tile = hamiltonian
+      .windows(2)
+      .map(|couple| Tile(couple[0], couple[1]))
+      .next().unwrap();
+    let index = puzzle_data.solution.iter().position(|&t| t == tile_to_reinsert).unwrap();
+    puzzle[index] = Some(tile_to_reinsert);
+  });
+
+  let double_tiles: Vec<&Tile> = puzzle_data.solution.iter().filter(|tile| tile.0 == tile.1).collect();
+  double_tiles.iter().for_each(|tile| {
+    let index = puzzle_data.solution.iter().position(|&t| t == **tile).unwrap();
+    puzzle[index] = Some(**tile);
+  });
+
+  PuzzleData {
+    puzzle: Some(puzzle),
+    ..puzzle_data
+  }
 }
 
 /// Generates a solution using Hierholzer's algorithm
@@ -89,9 +115,7 @@ fn generate_solution(puzzle_data: PuzzleData) -> PuzzleData {
 }
 
 mod tests {
-
     use crate::NUMBER_OF_CLASSES;
-
     use super::generate_valid_puzzle;
 
     #[test]

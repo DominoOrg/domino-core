@@ -17,19 +17,30 @@ endif
 :A sequence is generated from the eulerian cycle;
 !endprocedure
 
-!procedure $GeneratePuzzle($arg)
-:All the hamiltonian cycles get computed over the tournament;
-:According to n, n-1/2 cycles will be reinserted at the position they appear in the solution;
-while (n-1/2 hamiltonian paths are reinserted?) is (no)
-:An hamiltonian path gets reinserted and excluded from the next reinsertions;
+!procedure $GenerateValidMaxComplexityPuzzle($arg)
+:All the Hamiltonian cycles get computed over the tournament;
+:According to n, (n-1)/2 cycles will be selected;
+while ((n-1)/2 Hamiltonian cycles have not been processed?) is (no)
+:Select a Hamiltonian cycle that has not been processed;
+:Reinsert **one tile** from the selected cycle at its original position;
+:Mark the cycle as processed to exclude it from future selections;
 endwhile
+:Reinsert the double tiles;
+!endprocedure
+
+!procedure $RefinePuzzle($arg)
+repeat
+:Reinsert a single tile;
+:Compute complexity;
+repeat while(Is the complexity of the puzzle equal to the desired complexity?) is (no)
 !endprocedure
 
 $StyledRectangle("InputValidation","lightblue","1","Here input gets validated")
 :A regular graph from 'n' gets built;
 $StyledRectangle("GenerateSolution","lightcoral","1","Here solution gets generated")
 :A tournament graph gets generated from the sequence;
-$StyledRectangle("GeneratePuzzle","lightgreen","1","Here puzzle gets generated")
+$StyledRectangle("GenerateValidMaxComplexityPuzzle","lightgreen","1","Here puzzle gets generated")
+$StyledRectangle("RefinePuzzle","coral","1","The puzzle gets reinsertions until the complexity desired is matched")
 end
 
 @enduml

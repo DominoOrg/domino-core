@@ -11,7 +11,8 @@ use crate::{Arc, DominoError, Node, Tournament};
 /// * `Ok((Vec<Node>, HashSet<Arc>))` if a valid path is found.
 /// * `Err(DominoError::NotValidPuzzle)` if no path exists.
 pub fn compute_hamiltonian_path_r(
-  tournament: Tournament
+  tournament: &Tournament,
+  visited_arcs: HashSet<Arc>
 ) -> Result<
   (Vec<Node>, HashSet<Arc>),
   DominoError
@@ -19,29 +20,30 @@ pub fn compute_hamiltonian_path_r(
   let nodes = extract_nodes(&tournament);
   let start_node = select_start_node(&nodes)?;
   let initial_path = vec![start_node];
-  let initial_arcs = HashSet::new();
   compute_hamiltonian_path_recursive(
       tournament,
       nodes,
       initial_path,
-      initial_arcs,
+      visited_arcs,
       start_node
   )
 }
 
-/// Selects the next node to visit that is not already in the current path.
+/// Selects the next node to visit that is not already in the current path and its not a self loop arc.
 fn select_next_node(current_path: &Vec<Node>, nodes: &HashSet<Node>) -> Option<Node> {
     let mut rng = thread_rng();
     nodes
         .iter()
-        .filter(|node| !current_path.contains(node))
+        .filter(|node| !current_path.contains(node) && (
+          current_path.is_empty() || &current_path.last().unwrap() != node
+        ))
         .choose(&mut rng)
         .copied()
 }
 
 /// Processes the selected next node by verifying arc validity and updating the path.
 fn process_next_node(
-    tournament: Tournament,
+    tournament: &Tournament,
     nodes: HashSet<Node>,
     current_path: Vec<Node>,
     visited_arcs: HashSet<Arc>,
@@ -49,7 +51,7 @@ fn process_next_node(
     next_node: Node,
 ) -> Result<(Vec<Node>, HashSet<Arc>), DominoError> {
     let next_arc = Arc::from((current_node, next_node));
-    match is_valid_arc(&tournament, &current_node, &next_arc) {
+    match is_valid_arc(&tournament, &current_node, &next_arc, &visited_arcs) {
         true => proceed_to_next_node(
             tournament,
             nodes,
@@ -67,18 +69,19 @@ fn process_next_node(
     }
 }
 
-/// Checks if an arc exists in the tournament graph.
-fn is_valid_arc(tournament: &Tournament, current_node: &Node, next_arc: &Arc) -> bool {
+/// Checks if an arc exists in the tournament graph and is not already been visited.
+fn is_valid_arc(tournament: &Tournament, current_node: &Node, next_arc: &Arc, visited_arcs: &HashSet<Arc>) -> bool {
     tournament
         .adjacency
         .get(current_node)
         .unwrap_or(&Vec::new())
-        .contains(next_arc)
+        .contains(next_arc) &&
+    !visited_arcs.contains(next_arc)
 }
 
 /// Moves forward by adding a valid arc and recursively computing the next step.
 fn proceed_to_next_node(
-    tournament: Tournament,
+    tournament: &Tournament,
     nodes: HashSet<Node>,
     mut current_path: Vec<Node>,
     mut visited_arcs: HashSet<Arc>,
@@ -102,7 +105,7 @@ fn proceed_to_next_node(
 /// If no previous node exists, it attempts to retry the recursive computation
 /// with the current node instead of returning an error.
 fn attempt_backtrack(
-  tournament: Tournament,
+  tournament: &Tournament,
   nodes: HashSet<Node>,
   current_path: Vec<Node>,
   visited_arcs: HashSet<Arc>,
@@ -116,13 +119,7 @@ fn attempt_backtrack(
           visited_arcs,
           previous,
       ),
-      None => compute_hamiltonian_path_recursive(
-          tournament,
-          nodes,
-          remove_last_node(&current_path, current_node),
-          visited_arcs,
-          current_node,
-      ),
+      None => Err(DominoError::InvalidLength),
   }
 }
 
@@ -160,7 +157,7 @@ fn select_start_node(
 
 /// Recursively computes a Hamiltonian path by selecting valid arcs.
 fn compute_hamiltonian_path_recursive(
-    tournament: Tournament,
+    tournament: &Tournament,
     nodes: HashSet<Node>,
     current_path: Vec<Node>,
     visited_arcs: HashSet<Arc>,
@@ -207,10 +204,10 @@ mod tests {
         let tournament = Tournament::new(
           vec![(0,0).into(), (0,1).into(), (1,1).into(), (1,2).into(), (2,2).into(), (2,0).into()]
         ).unwrap();
-        let result = compute_hamiltonian_path_r(tournament);
+        let result = compute_hamiltonian_path_r(&tournament, HashSet::new());
         assert!(result.is_ok());
         let path = result.unwrap().0;
-        println!("path: {:?}", path);
+        // println!("path: {:?}", path);
         assert!(path == vec![0,1,2] || path == vec![1,2,0] || path == vec![2,0,1]);
     }
 

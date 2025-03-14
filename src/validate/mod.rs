@@ -1,6 +1,6 @@
 use model::{compute_model, variables::create_tileset};
 
-use crate::{utils::{get_n, DominoError, Model, Puzzle, Solution}, Tile};
+use crate::{utils::{get_n, DominoError, Model, Puzzle, ResultTranslator, Solution}, Tile};
 
 mod model;
 
@@ -47,20 +47,9 @@ pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), Domin
           if objective == missing_tiles {
               Ok(())
           } else {
-              let variables = translator._get_variables();
-              let n = get_n(puzzle)?;
-              let tileset = create_tileset(n as usize);
-              let tileset_digits = (tileset.len() as f32).log10().floor() as usize + 1;
-              let sequence_digits = (puzzle.len() as f32).log10().floor() as usize + 1;
-              let mut solution: Vec<Option<Tile>> = puzzle.clone();
-              for variable in variables.into_iter().filter(|variable| variable.1 == 1.0) {
-                let variable_label = variable.0;
-                let tile_index = variable_label[1..1+tileset_digits].parse::<usize>().unwrap();
-                let position_index = variable_label[1+tileset_digits..1+tileset_digits+sequence_digits].parse::<usize>().unwrap();
-                solution[position_index] = Some((tileset[tile_index].0 as i32, tileset[tile_index].1 as i32).into());
-              }
+              let solution = model_solution_parse(translator, puzzle)?;
               Err(DominoError::ModelError(
-                  format!("Invalid objective, found another solution: {solution:?}"),
+                  format!("Invalid objective, found another solution: {solution:?} with model: {string_model}"),
               ))
           }
       }else {
@@ -68,6 +57,25 @@ pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), Domin
             "Model failed execution".to_string(),
         ))
       }
+}
+
+// Function that given the space of tiles existing for a given puzzle and the result of an lp model having as variables names:
+// x_{i,j} where i is the index of the tile in the tileset used and j the position where it got inserted within the puzzle space
+// returns the solution computed by the lp model
+fn model_solution_parse(translator: ResultTranslator, puzzle: &Puzzle) -> Result<Vec<Option<Tile>>, DominoError> {
+  let variables: std::collections::HashMap<String, f64> = translator._get_variables();
+  let n: i32 = get_n(puzzle)?;
+  let tileset: Vec<(usize, usize)> = create_tileset(n as usize);
+  let tileset_digits: usize = (tileset.len() as f32).log10().floor() as usize + 1;
+  let sequence_digits: usize = (puzzle.len() as f32).log10().floor() as usize + 1;
+  let mut solution: Vec<Option<Tile>> = puzzle.clone();
+  for variable in variables.into_iter().filter(|variable| variable.1 == 1.0) {
+    let variable_label: String = variable.0;
+    let tile_index: usize = variable_label[1..1+tileset_digits].parse::<usize>().unwrap();
+    let position_index: usize = variable_label[1+tileset_digits..1+tileset_digits+sequence_digits].parse::<usize>().unwrap();
+    solution[position_index] = Some((tileset[tile_index].0 as i32, tileset[tile_index].1 as i32).into());
+  }
+  Ok(solution)
 }
 
 #[cfg(test)]

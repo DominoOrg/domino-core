@@ -18,7 +18,7 @@ pub fn compute_hamiltonian_cycles(puzzle_data: &PuzzleData) -> Result<Vec<Vec<No
     while visited_arcs.len() < arcs.len() {
         let tournament: Option<Tournament> = puzzle_data.tournament.clone();
         let result: (Vec<Node>, HashSet<Arc>) =
-            compute_hamiltonian_path(tournament.unwrap(), visited_arcs.clone())?;
+            compute_hamiltonian_path(&tournament.unwrap(), visited_arcs.clone())?;
         let hamiltonian_path = result.0;
         visited_arcs = result.1;
         hamiltonian_paths.push(hamiltonian_path);
@@ -32,7 +32,7 @@ pub fn compute_hamiltonian_cycles(puzzle_data: &PuzzleData) -> Result<Vec<Vec<No
 }
 
 fn compute_hamiltonian_path(
-    tournament: Tournament,
+    tournament: &Tournament,
     visited_arcs: HashSet<Arc>,
 ) -> Result<(Vec<Node>, HashSet<Arc>), DominoError> {
     let nodes: HashSet<Node> = tournament.nodes.clone().into_iter().collect();
@@ -51,5 +51,45 @@ fn compute_hamiltonian_path(
         return Err(DominoError::NotValidPuzzle);
     }
 
-    compute_hamiltonian_path_r(tournament)
+    compute_hamiltonian_path_r(tournament, visited_arcs)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hamiltonians_n3() {
+      let tournament = Tournament::new(
+        vec![
+          (0,1).into(),(1,1).into(),(1,2).into(),(2,2).into(),(2,3).into(),
+          (3,3).into(),(3,0).into(),(0,0).into()]
+      ).unwrap();
+      let mut result = compute_hamiltonian_path(&tournament, HashSet::new());
+      println!("result: {result:?}");
+      assert!(result.is_ok());
+      let visited_arcs = result.unwrap().1;
+
+      result = compute_hamiltonian_path(&tournament, visited_arcs);
+      println!("result: {result:?}");
+      assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_hamiltonians_n4() {
+      let tournament = Tournament::new(
+        vec![
+          (0,1).into(),(1,1).into(),(1,4).into(),(4,4).into(),(4,2).into(),
+          (2,2).into(),(2,3).into(),(3,3).into(),(3,0).into(),(0,2).into(),
+          (2,1).into(),(1,3).into(),(3,4).into(),(4,0).into(),(0,0).into()]
+      ).unwrap();
+      let mut result = compute_hamiltonian_path(&tournament, HashSet::new());
+      println!("result: {result:?}");
+      assert!(result.is_ok());
+      let visited_arcs = result.unwrap().1;
+
+      result = compute_hamiltonian_path(&tournament, visited_arcs);
+      println!("result: {result:?}");
+      assert!(result.is_ok());
+    }
 }
