@@ -1,6 +1,9 @@
 use model::{compute_model, variables::create_tileset};
 
-use crate::{utils::{get_n, DominoError, Model, Puzzle, ResultTranslator, Solution}, Tile};
+use crate::{
+    utils::{get_n, DominoError, Model, Puzzle, ResultTranslator, Solution},
+    Tile,
+};
 
 mod model;
 
@@ -39,43 +42,52 @@ pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), Domin
     // Extract the objective value from the solver result.
     // May also see the values of the variables through translator._get_variables() method
     if let Ok(translator) = solver_result {
-      // Count the number of missing tiles in the puzzle.
-      let missing_tiles = puzzle.iter().filter(|tile| tile.is_none()).count() as f64;
+        // Count the number of missing tiles in the puzzle.
+        let missing_tiles = puzzle.iter().filter(|tile| tile.is_none()).count() as f64;
 
-      // Validate the objective value against the expected missing tiles count.
-      let objective = translator.get_objective();
-          if objective == missing_tiles {
-              Ok(())
-          } else {
-              let solution = model_solution_parse(translator, puzzle)?;
-              Err(DominoError::ModelError(
+        // Validate the objective value against the expected missing tiles count.
+        let objective = translator.get_objective();
+        if objective == missing_tiles {
+            Ok(())
+        } else {
+            let solution = model_solution_parse(translator, puzzle)?;
+            Err(DominoError::ModelError(
                   format!("Invalid objective, found another solution: {solution:?} with model: {string_model}"),
               ))
-          }
-      }else {
+        }
+    } else {
         Err(DominoError::ModelError(
             "Model failed execution".to_string(),
         ))
-      }
+    }
 }
 
 // Function that given the space of tiles existing for a given puzzle and the result of an lp model having as variables names:
 // x_{i,j} where i is the index of the tile in the tileset used and j the position where it got inserted within the puzzle space
 // returns the solution computed by the lp model
-fn model_solution_parse(translator: ResultTranslator, puzzle: &Puzzle) -> Result<Vec<Option<Tile>>, DominoError> {
-  let variables: std::collections::HashMap<String, f64> = translator._get_variables();
-  let n: i32 = get_n(puzzle)?;
-  let tileset: Vec<(usize, usize)> = create_tileset(n as usize);
-  let tileset_digits: usize = (tileset.len() as f32).log10().floor() as usize + 1;
-  let sequence_digits: usize = (puzzle.len() as f32).log10().floor() as usize + 1;
-  let mut solution: Vec<Option<Tile>> = puzzle.clone();
-  for variable in variables.into_iter().filter(|variable| variable.1 == 1.0) {
-    let variable_label: String = variable.0;
-    let tile_index: usize = variable_label[1..1+tileset_digits].parse::<usize>().unwrap();
-    let position_index: usize = variable_label[1+tileset_digits..1+tileset_digits+sequence_digits].parse::<usize>().unwrap();
-    solution[position_index] = Some((tileset[tile_index].0 as i32, tileset[tile_index].1 as i32).into());
-  }
-  Ok(solution)
+fn model_solution_parse(
+    translator: ResultTranslator,
+    puzzle: &Puzzle,
+) -> Result<Vec<Option<Tile>>, DominoError> {
+    let variables: std::collections::HashMap<String, f64> = translator._get_variables();
+    let n: i32 = get_n(puzzle)?;
+    let tileset: Vec<(usize, usize)> = create_tileset(n as usize);
+    let tileset_digits: usize = (tileset.len() as f32).log10().floor() as usize + 1;
+    let sequence_digits: usize = (puzzle.len() as f32).log10().floor() as usize + 1;
+    let mut solution: Vec<Option<Tile>> = puzzle.clone();
+    for variable in variables.into_iter().filter(|variable| variable.1 == 1.0) {
+        let variable_label: String = variable.0;
+        let tile_index: usize = variable_label[1..1 + tileset_digits]
+            .parse::<usize>()
+            .unwrap();
+        let position_index: usize = variable_label
+            [1 + tileset_digits..1 + tileset_digits + sequence_digits]
+            .parse::<usize>()
+            .unwrap();
+        solution[position_index] =
+            Some((tileset[tile_index].0 as i32, tileset[tile_index].1 as i32).into());
+    }
+    Ok(solution)
 }
 
 #[cfg(test)]
@@ -224,7 +236,16 @@ mod tests {
 
     #[test]
     fn test_validate_puzzle_with_ambiguous_solution() {
-        let puzzle = vec![Some((0, 0).into()), None, None, None, None, None, None, None];
+        let puzzle = vec![
+            Some((0, 0).into()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ];
         let solution = vec![
             (0, 0).into(),
             (0, 1).into(),
@@ -240,7 +261,4 @@ mod tests {
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
-
-
-
 }

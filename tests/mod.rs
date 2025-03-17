@@ -75,12 +75,11 @@ fn test_classify() {
         } else {
             (n + 1) * (n + 1) / 2
         };
-        let minimum_tiles = if n <= 3 {
-            (n as f32 / 2.0).floor()
+        let max_hole: usize = if n >= 4 {
+          n + 1
         } else {
-            n as f32 + 1.0
+          (n + 1) * 2 - 1
         };
-        let max_hole = l - minimum_tiles as usize;
         (1..=3)
             .into_iter()
             .map(|c| ComplexityClass::new(c).unwrap())
@@ -108,12 +107,11 @@ fn test_all() {
         } else {
             (n + 1) * (n + 1) / 2
         };
-        let minimum_tiles = if n <= 3 {
-            (n as f32 / 2.0).floor()
+        let max_hole: usize = if n >= 4 {
+          n + 1
         } else {
-            n as f32 + 1.0
+          (n + 1) * 2 - 1
         };
-        let max_hole = l - minimum_tiles as usize;
 
         (1..=3)
             .into_iter()
@@ -133,7 +131,7 @@ fn test_all() {
                     .map(|_solution| {
                         let computed_complexity = classify_puzzle(&puzzle)
                             .expect("Failed to classify puzzle: {puzzle:?}");
-                        assert_eq!(expected_complexity, computed_complexity);
+                        assert_eq!(computed_complexity, expected_complexity);
                     });
             });
     });

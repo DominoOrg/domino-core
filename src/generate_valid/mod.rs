@@ -14,10 +14,11 @@ struct PuzzleData {
     tournament: Option<Tournament>,
     solution: Solution,
     puzzle: Option<Puzzle>,
-    c: ComplexityClass
+    n: usize,
+    c: ComplexityClass,
 }
 
-/// Orchestrates the puzzle generation flow using currying (one input function)
+/// Orchestrates the puzzle generation flow using currying
 pub fn generate_valid_puzzle(n: usize) -> Box<dyn Fn(usize) -> Result<Puzzle, DominoError>> {
     Box::new(move |c| {
         ComplexityClass::new(c).and_then(|valid_c| {
@@ -47,8 +48,9 @@ fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass) -> Result<PuzzleData,
                 graph: Graph::regular(n),
                 tournament: None,
                 solution: vec![], // Empty solution initially
-                puzzle: None, // Empty puzzle initially
-                c
+                puzzle: None,     // Empty puzzle initially
+                c,
+                n
             })
         }
     })
@@ -56,43 +58,68 @@ fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass) -> Result<PuzzleData,
 
 // Upates the puzzle until it does not match the required complexity
 fn refine_puzzle(puzzle_data: PuzzleData) -> Puzzle {
-  let mut puzzle = puzzle_data.puzzle.unwrap();
-  let expected_complexity_class = puzzle_data.c.0;
-  let mut actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
+    let mut puzzle = puzzle_data.puzzle.unwrap();
+    let expected_complexity_class = puzzle_data.c.0;
+    let mut actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
 
-  while actual_complexity_class < expected_complexity_class {
-    let index = puzzle_data.solution.iter().position(|&t| !puzzle.contains(&Some(t))).unwrap();
-    puzzle[index] = Some(puzzle_data.solution[index]);
-    actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
-  }
+    while actual_complexity_class < expected_complexity_class {
+        let index = puzzle_data
+            .solution
+            .iter()
+            .position(|&t| !puzzle.contains(&Some(t)))
+            .unwrap();
+        puzzle[index] = Some(puzzle_data.solution[index]);
+        println!("puzzle: {puzzle:?}");
+        actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
+        println!("actual_complexity_class: {actual_complexity_class}");
+    }
 
-  puzzle
+    puzzle
 }
 
 /// Reinserts one tile per Hamiltonian path, reinserts all the double tiles and returns updated PuzzleData
 fn generate_puzzle(puzzle_data: PuzzleData) -> PuzzleData {
-  let mut puzzle: Puzzle = vec![None; puzzle_data.solution.len()];
-  let hamiltonians = compute_hamiltonian_cycles(&puzzle_data).unwrap();
+    let mut puzzle: Puzzle = vec![None; puzzle_data.solution.len()];
+    let hamiltonians = compute_hamiltonian_cycles(&puzzle_data);
+    println!("hamiltonians: {hamiltonians:?}");
+    let hamiltonians = hamiltonians.unwrap();
 
-  hamiltonians.iter().for_each(|hamiltonian| {
-    let tile_to_reinsert: Tile = hamiltonian
-      .windows(2)
-      .map(|couple| Tile(couple[0], couple[1]))
-      .next().unwrap();
-    let index = puzzle_data.solution.iter().position(|&t| t == tile_to_reinsert).unwrap();
-    puzzle[index] = Some(tile_to_reinsert);
-  });
+    hamiltonians.iter().for_each(|hamiltonian| {
+        let tile_to_reinsert: Tile = hamiltonian
+            .windows(2)
+            .map(|couple| Tile(couple[0], couple[1]))
+            .next()
+            .unwrap();
+        let index = puzzle_data
+            .solution
+            .iter()
+            .position(|&t| t == tile_to_reinsert)
+            .unwrap();
+        puzzle[index] = Some(tile_to_reinsert);
+    });
 
-  let double_tiles: Vec<&Tile> = puzzle_data.solution.iter().filter(|tile| tile.0 == tile.1).collect();
-  double_tiles.iter().for_each(|tile| {
-    let index = puzzle_data.solution.iter().position(|&t| t == **tile).unwrap();
-    puzzle[index] = Some(**tile);
-  });
+    if puzzle_data.n >= 4 {
+      let double_tiles: Vec<&Tile> = puzzle_data
+      .solution
+      .iter()
+      .filter(|tile| tile.0 == tile.1)
+      .collect();
 
-  PuzzleData {
-    puzzle: Some(puzzle),
-    ..puzzle_data
-  }
+      double_tiles.iter().for_each(|tile| {
+          let index = puzzle_data
+              .solution
+              .iter()
+              .position(|&t| t == **tile)
+              .unwrap();
+          puzzle[index] = Some(**tile);
+      });
+    }
+
+
+    PuzzleData {
+        puzzle: Some(puzzle),
+        ..puzzle_data
+    }
 }
 
 /// Generates a solution using Hierholzer's algorithm
@@ -115,8 +142,8 @@ fn generate_solution(puzzle_data: PuzzleData) -> PuzzleData {
 }
 
 mod tests {
-    use crate::NUMBER_OF_CLASSES;
     use super::generate_valid_puzzle;
+    use crate::NUMBER_OF_CLASSES;
 
     #[test]
     fn it_works() {
@@ -126,6 +153,7 @@ mod tests {
                 (0..=RETRIALS).into_iter().for_each(|_| {
                     println!("Generating puzzle for n = {n} and c = {c}");
                     let puzzle = generate_valid_puzzle(n)(c);
+                    println!("puzzle: {puzzle:?}");
                     assert_eq!(puzzle.is_ok(), true, "puzzle should be valid");
                     println!("*********SUCCESS*********\n\n---------------\n\n");
                 });

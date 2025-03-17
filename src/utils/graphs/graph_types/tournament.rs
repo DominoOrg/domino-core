@@ -63,11 +63,11 @@ impl Tournament {
 
                 let expected_degree = ((n as f32 / 2.0).floor() as usize + 1) * 2;
                 if in_deg + out_deg != expected_degree {
-                  let err_msg = format!(
+                    let err_msg = format!(
                     "Invalid tournament: Node {} does not have the right number of arcs for a tournament, found {} expected {}",
                     node, in_deg + out_deg, expected_degree
                   );
-                  return Err(err_msg);
+                    return Err(err_msg);
                 }
             }
         }
@@ -122,8 +122,14 @@ mod tests {
         // to other required edges is still considered valid.
         // The self-loops do not interfere with the tournament properties.
         let arcs = vec![
-          (0,1).into(),(1,1).into(),(1,2).into(),(2,2).into(),(2,3).into(),
-          (3,3).into(),(3,0).into(),(0,0).into()
+            (0, 1).into(),
+            (1, 1).into(),
+            (1, 2).into(),
+            (2, 2).into(),
+            (2, 3).into(),
+            (3, 3).into(),
+            (3, 0).into(),
+            (0, 0).into(),
         ];
         let result = Tournament::new(arcs);
         println!("Result: {result:?}");
@@ -136,9 +142,21 @@ mod tests {
         // to other required edges is still considered valid.
         // The self-loops do not interfere with the tournament properties.
         let arcs = vec![
-          (0,1).into(),(1,1).into(),(1,4).into(),(4,4).into(),(4,2).into(),
-          (2,2).into(),(2,3).into(),(3,3).into(),(3,0).into(),(0,2).into(),
-          (2,1).into(),(1,3).into(),(3,4).into(),(4,0).into(),(0,0).into()
+            (0, 1).into(),
+            (1, 1).into(),
+            (1, 4).into(),
+            (4, 4).into(),
+            (4, 2).into(),
+            (2, 2).into(),
+            (2, 3).into(),
+            (3, 3).into(),
+            (3, 0).into(),
+            (0, 2).into(),
+            (2, 1).into(),
+            (1, 3).into(),
+            (3, 4).into(),
+            (4, 0).into(),
+            (0, 0).into(),
         ];
         let result = Tournament::new(arcs);
         println!("Result: {result:?}");

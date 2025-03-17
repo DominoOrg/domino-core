@@ -20,6 +20,7 @@ use rand::Rng;
 /// # Returns
 ///
 /// A `Puzzle` instance with `Some(Tile)` values for placed tiles and `None` for removed tiles.
+#[deprecated(since = "1.0.0", note = "use `generate_valid_puzzle` instead")]
 pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzle {
     let graph = Graph::regular(n);
     let eulerian_cycle = find_eulerian_cycle(&graph)(random);
