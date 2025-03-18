@@ -2,19 +2,20 @@
 start
 :The user requires a puzzle to be solved;
 :The puzzle gets represented through a partially oriented graph 'pog_graph';
-while (the puzzle is not complete?) is (yes) 
+while (the puzzle is not complete?) is (yes)
     :A copy of the puzzle is done;
     :Collect the positions of the missinig tiles into 'positions';
     :Collect all the missing tiles into 'missing_tiles';
 endwhile (no)
-repeat
-:The current empty position in positions gets evaluated;
-    repeat
-    :The current missing tile is inserted at the position;
-    if (The tile is adjacent to both his neighbors?) is (yes) then
-        break
-    endif
-    repeat while (One of the missing tiles has not been inserted?) is (yes)
-repeat while (The position has not been filled?) is (yes)
+:Solve through lp model;
+' repeat
+' :The current empty position in positions gets evaluated;
+'     repeat
+'     :The current missing tile is inserted at the position;
+'     if (The tile is adjacent to both his neighbors?) is (yes) then
+'         break
+'     endif
+'     repeat while (One of the missing tiles has not been inserted?) is (yes)
+' repeat while (The position has not been filled?) is (yes)
 end
 @enduml

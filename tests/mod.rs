@@ -32,11 +32,15 @@ fn test_generate() {
 fn test_solve() {
     test_suite().into_iter().for_each(|n| {
         let puzzle = generate_puzzle(n, 1, false);
+        println!("Puzzle: {puzzle:?}");
         let solution = solve_puzzle(&puzzle).unwrap();
+        println!("Solution: {solution:?}");
         assert_eq!(solution.len(), puzzle.len());
 
         let puzzle = generate_puzzle(n, 1, true);
+        println!("Puzzle: {puzzle:?}");
         let solution = solve_puzzle(&puzzle);
+        println!("Solution: {solution:?}");
         if let Ok(solution) = solution {
             assert_eq!(solution.len(), puzzle.len());
         }

@@ -3,7 +3,7 @@ name = "domino-lib"
 description = "Domino library, create sequences and puzzles, solve and validate them in rust"
 repository = "https://github.com/DominoOrg/domino-lib"
 license = "MIT"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Nunzio Onorati <nunzioonorati@gmail.com>"]
 

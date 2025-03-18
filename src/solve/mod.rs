@@ -1,12 +1,11 @@
-//! This module provides a recursive backtracking algorithm for solving a Domino puzzle.
-//!
-//! It includes functions to determine missing tiles, check valid placements, and recursively
-//! search for a valid solution.
+mod model;
 
 use std::collections::HashSet;
 use std::time::Instant;
 
-use crate::{utils::get_n, DominoError, Puzzle, Solution, Tile};
+use model::{compute_model, variables::create_tileset};
+
+use crate::{utils::{get_n, Model}, DominoError, Puzzle, Solution, Tile};
 
 /// Attempts to solve a given puzzle using a recursive backtracking approach.
 ///
@@ -23,15 +22,37 @@ use crate::{utils::get_n, DominoError, Puzzle, Solution, Tile};
 /// * `Err(DominoError::UnsolvablePuzzle)` - If no solution exists.
 /// * `Err(DominoError::InvalidPuzzle)` - If the puzzle input is invalid.
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
-    let mut new_puzzle = puzzle.clone();
-    let missing_tiles = get_missing_tiles(puzzle)?;
-    let start_instant = Instant::now();
+    let model_string = compute_model(puzzle)?;
+    // println!("Model: {}", model_string);
+    // Execute the model to obtain a solver result.
+    let solver_result = Model::execute(model_string.clone());
 
-    if solve_puzzle_r(&mut new_puzzle, &missing_tiles, 0, &start_instant) {
-        let solution = new_puzzle.into_iter().map(|tile| tile.unwrap()).collect();
-        return Ok(solution);
+    let n = get_n(puzzle)?;
+    let tileset: Vec<Tile> = create_tileset(n as usize).iter().map(|tuple| Tile((*tuple).0 as i32, (*tuple).1 as i32).into()).collect();
+    let tileset_digits = (tileset.len() as f32).log10().floor() as usize + 1;
+    let sequence_digits = (puzzle.len() as f32).log10().floor() as usize + 1;
+
+    if let Ok(translator) = solver_result {
+        let mut solution = puzzle.clone();
+        let variables = translator._get_variables();
+        let labels: Vec<String> = variables.iter()
+        .filter_map(|entry: (&String, &f64)| if entry.1 == &1.0 {
+          Some(entry.0.clone())
+        } else {
+          None
+        })
+        .collect();
+         labels.iter()
+        .for_each(|label| {
+          let tile_index: usize = label[1..1+tileset_digits].parse().unwrap();
+          let position_index: usize = label[1+tileset_digits..1+tileset_digits+sequence_digits].parse().unwrap();
+          solution[position_index] = Some(tileset[tile_index])
+        });
+        Ok(solution.iter().map(|option| option.unwrap()).collect())
     } else {
-        return Err(DominoError::UnsolvablePuzzle);
+        Err(DominoError::ModelError(
+            "Model failed execution".to_string(),
+        ))
     }
 }
 
