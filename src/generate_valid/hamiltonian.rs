@@ -29,9 +29,7 @@ fn select_next_node(
         .iter()
         .filter(|arc| {
             !current_path.contains(&arc.destination)
-                && !visited_arcs
-                    .iter()
-                    .any(|visited| *visited == **arc)
+                && !visited_arcs.iter().any(|visited| *visited == **arc)
         })
         .collect::<Vec<&Arc>>();
     //println!("Available arcs: {available_arcs:?}");
@@ -186,13 +184,13 @@ fn compute_hamiltonian_path_recursive(
                 next_node,
             ),
             None => process_next_node(
-              tournament,
-              nodes,
-              current_path,
-              visited_arcs,
-              current_node,
-              current_node,
-          ),
+                tournament,
+                nodes,
+                current_path,
+                visited_arcs,
+                current_node,
+                current_node,
+            ),
         }
     }
 }

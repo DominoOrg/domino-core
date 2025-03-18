@@ -43,11 +43,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
 
     // Compute the maximum allowed hole length in a generic puzzle leaving it valid.
     // If planar, subtract floor(n/2) from l; otherwise, subtract (n + 1) from l.
-    let max_hole: usize = if n >= 4 {
-      n + 1
-    } else {
-      (n + 1) * 2 - 1
-    };
+    let max_hole: usize = if n >= 4 { n + 1 } else { (n + 1) * 2 - 1 };
 
     // Detect holes within the puzzle. Each hole is represented as a tuple (start_index, end_index).
     let holes: Vec<(usize, usize)> = detect_holes(puzzle);
@@ -244,14 +240,14 @@ fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: usize, len:
         .into_iter()
         .map(|hole| {
             let hole_length: usize = if hole.1 > hole.0 {
-              hole.1.saturating_sub(hole.0)
+                hole.1.saturating_sub(hole.0)
             } else {
-              // println!("({len} - {}) + {}", hole.0, hole.1);
-              (len - hole.0) + hole.1
+                // println!("({len} - {}) + {}", hole.0, hole.1);
+                (len - hole.0) + hole.1
             };
             // println!("hole: {hole:?}, hole_length: {hole_length}");
             // println!("number_of_holes_factor: {number_of_holes_factor} hole_lenght: {hole_length} length_factor: {}", (hole_length as f32/ max_hole as f32).powf(2.0));
-            (hole_length as f32/ max_hole as f32).powf(2.0)
+            (hole_length as f32 / max_hole as f32).powf(2.0)
         })
         .sum::<f32>();
 

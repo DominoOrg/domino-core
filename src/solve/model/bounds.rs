@@ -5,7 +5,10 @@ use super::{
     variables::{Variable, Variables},
     Puzzle,
 };
-use crate::{stringify_variables, utils::{get_n, Tile}};
+use crate::{
+    stringify_variables,
+    utils::{get_n, Tile},
+};
 
 /// Generates constraints ensuring each tile is used exactly once.
 ///

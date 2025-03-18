@@ -63,7 +63,12 @@ fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
 ///
 /// A string representing the linear objective function to be minimized.
 fn objective_function(vars: &Variables) -> String {
-    let labels: Vec<String> = vars.by_label.clone().into_values().map(|var| var.label).collect();
+    let labels: Vec<String> = vars
+        .by_label
+        .clone()
+        .into_values()
+        .map(|var| var.label)
+        .collect();
     // Convert the list of variable labels into a formatted string representation.
     let obj = stringify_variables!(labels, " ");
     obj

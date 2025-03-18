@@ -79,11 +79,7 @@ fn test_classify() {
         } else {
             (n + 1) * (n + 1) / 2
         };
-        let max_hole: usize = if n >= 4 {
-          n + 1
-        } else {
-          (n + 1) * 2 - 1
-        };
+        let max_hole: usize = if n >= 4 { n + 1 } else { (n + 1) * 2 - 1 };
         (1..=3)
             .into_iter()
             .map(|c| ComplexityClass::new(c).unwrap())
@@ -111,11 +107,7 @@ fn test_all() {
         } else {
             (n + 1) * (n + 1) / 2
         };
-        let max_hole: usize = if n >= 4 {
-          n + 1
-        } else {
-          (n + 1) * 2 - 1
-        };
+        let max_hole: usize = if n >= 4 { n + 1 } else { (n + 1) * 2 - 1 };
 
         (1..=3)
             .into_iter()
