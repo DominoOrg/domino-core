@@ -52,7 +52,7 @@ pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), Domin
         } else {
             let solution = model_solution_parse(translator, puzzle)?;
             Err(DominoError::ModelError(
-                  format!("Invalid objective, found another solution: {solution:?} with model: {string_model}"),
+                  format!("Invalid objective, found another solution: {solution:?}")// with model: {string_model}"),
               ))
         }
     } else {
