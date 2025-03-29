@@ -88,11 +88,11 @@ pub fn next_adjacent_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
     let n = get_n(puzzle).expect("Puzzle does not have a valid length") as usize;
 
-    for position in 0..puzzle.len() {
-        if puzzle[position].is_some() {
+    for position in 0..puzzle.0.len() {
+        if puzzle.0[position].is_some() {
             continue;
         }
-        if let Some(tile) = puzzle[(position + 1) % puzzle.len()] {
+        if let Some(tile) = puzzle.0[(position + 1) % puzzle.0.len()] {
             if let Some(bound) = next_enforced_bound(vars, tile, position) {
                 prob_bounds.push(bound);
             }
@@ -155,7 +155,7 @@ fn next_bound(puzzle: &Puzzle, vars: &Variables, position: usize, number: usize)
     let left_member_variables: Vec<String> =
         variables_at_position_with_condition(vars, position, condition);
 
-    let next_position = (position + 1) % puzzle.len();
+    let next_position = (position + 1) % puzzle.0.len();
     let condition = |var: &Variable| var.tile.0 == number.try_into().unwrap();
     let right_member_variables: Vec<String> =
         variables_at_position_with_condition(vars, next_position, condition);

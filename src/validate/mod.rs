@@ -43,7 +43,7 @@ pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), Domin
     // May also see the values of the variables through translator._get_variables() method
     if let Ok(translator) = solver_result {
         // Count the number of missing tiles in the puzzle.
-        let missing_tiles = puzzle.iter().filter(|tile| tile.is_none()).count() as f64;
+        let missing_tiles = puzzle.0.iter().filter(|tile| tile.is_none()).count() as f64;
 
         // Validate the objective value against the expected missing tiles count.
         let objective = translator.get_objective();
@@ -73,8 +73,8 @@ fn model_solution_parse(
     let n: i32 = get_n(puzzle)?;
     let tileset: Vec<(usize, usize)> = create_tileset(n as usize);
     let tileset_digits: usize = (tileset.len() as f32).log10().floor() as usize + 1;
-    let sequence_digits: usize = (puzzle.len() as f32).log10().floor() as usize + 1;
-    let mut solution: Vec<Option<Tile>> = puzzle.clone();
+    let sequence_digits: usize = (puzzle.0.len() as f32).log10().floor() as usize + 1;
+    let mut solution: Vec<Option<Tile>> = puzzle.0.clone();
     for variable in variables.into_iter().filter(|variable| variable.1 == 1.0) {
         let variable_label: String = variable.0;
         let tile_index: usize = variable_label[1..1 + tileset_digits]
@@ -118,7 +118,7 @@ mod tests {
             (3, 0).into(),
         ];
         println!("Testing valid puzzle with single hole: {:?}", puzzle);
-        assert!(validate_puzzle(&puzzle, &solution).is_ok());
+        assert!(validate_puzzle(&puzzle.into(), &solution).is_ok());
     }
 
     #[test]
@@ -144,7 +144,7 @@ mod tests {
             (3, 0).into(),
         ];
         println!("Testing valid puzzle with multiple holes: {:?}", puzzle);
-        assert!(validate_puzzle(&puzzle, &solution).is_ok());
+        assert!(validate_puzzle(&puzzle.into(), &solution).is_ok());
     }
 
     #[test]
@@ -152,7 +152,7 @@ mod tests {
         let puzzle = vec![];
         let solution = vec![];
         println!("Testing empty puzzle: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle, &solution);
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -171,7 +171,7 @@ mod tests {
             (3, 0).into(),
         ];
         println!("Testing double tiles no orientation: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle, &solution);
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -190,7 +190,7 @@ mod tests {
             (0, 0).into(),
         ];
         println!("Testing single tile orientation: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle, &solution);
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -209,7 +209,7 @@ mod tests {
             (3, 0).into(),
         ];
         println!("Testing invalid empty puzzle: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle, &solution);
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -229,7 +229,7 @@ mod tests {
             (0, 0).into(),
         ];
         println!("Testing invalid puzzle with invalid size: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle, &solution);
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -257,7 +257,7 @@ mod tests {
             (3, 0).into(),
         ];
         println!("Testing puzzle with an ambiguous solution: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle, &solution);
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }

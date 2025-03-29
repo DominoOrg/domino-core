@@ -96,7 +96,7 @@ pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
         .enumerate()
         .filter(|(_, tile)| {
             let tile = Tile(tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
-            !puzzle
+            !puzzle.0
                 .iter()
                 .any(|&puzzle_tile| puzzle_tile == Some(tile) || puzzle_tile == Some(tile.flip()))
         })
@@ -104,7 +104,7 @@ pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
 
     let mapped_variables = generate_combinations(tileset, n)
         .into_iter()
-        .filter(|var| puzzle.get(var.position).unwrap().is_none())
+        .filter(|var| puzzle.0.get(var.position).unwrap().is_none())
         .collect();
 
     Ok(Variables::new(mapped_variables))

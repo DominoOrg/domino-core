@@ -31,9 +31,9 @@ fn bench_generate() {
             duration = now.elapsed();
             durations.push(duration);
             if n % 2 == 0 {
-                assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
+                assert_eq!(puzzle.0.len(), (n + 1) * (n + 2) / 2);
             } else {
-                assert_eq!(puzzle.len(), (n + 1) * (n + 1) / 2);
+                assert_eq!(puzzle.0.len(), (n + 1) * (n + 1) / 2);
             }
 
             now = Instant::now();
@@ -41,9 +41,9 @@ fn bench_generate() {
             duration = now.elapsed();
             durations.push(duration);
             if n % 2 == 0 {
-                assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
+                assert_eq!(puzzle.0.len(), (n + 1) * (n + 2) / 2);
             } else {
-                assert_eq!(puzzle.len(), (n + 1) * (n + 1) / 2);
+                assert_eq!(puzzle.0.len(), (n + 1) * (n + 1) / 2);
             }
         }
 
@@ -68,7 +68,7 @@ fn bench_solve() {
             duration = now.elapsed();
             durations.push(duration);
             let solution = solve_puzzle(&puzzle).unwrap();
-            assert_eq!(solution.len(), puzzle.len());
+            assert_eq!(solution.len(), puzzle.0.len());
 
             let puzzle = generate_puzzle(n, 1, true);
             now = Instant::now();
@@ -76,7 +76,7 @@ fn bench_solve() {
             duration = now.elapsed();
             durations.push(duration);
             if let Ok(solution) = solution {
-                assert_eq!(solution.len(), puzzle.len());
+                assert_eq!(solution.len(), puzzle.0.len());
             }
         }
 
@@ -114,9 +114,9 @@ fn bench_validate() {
                     (n + 1) * (n + 1) / 2
                 }
             ];
-            let solution = solve_puzzle(&puzzle).unwrap();
+            let solution = solve_puzzle(&puzzle.clone().into()).unwrap();
             now = Instant::now();
-            let result = validate_puzzle(&puzzle, &solution);
+            let result = validate_puzzle(&puzzle.into(), &solution);
             duration = now.elapsed();
             durations.push(duration);
             assert!(result.is_err());

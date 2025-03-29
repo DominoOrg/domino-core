@@ -58,7 +58,7 @@ fn validate_input(n: usize) -> Box<dyn Fn(ComplexityClass) -> Result<PuzzleData,
 
 // Upates the puzzle until it does not match the required complexity
 fn refine_puzzle(puzzle_data: PuzzleData) -> Puzzle {
-    let mut puzzle = puzzle_data.puzzle.unwrap();
+    let mut puzzle = puzzle_data.puzzle.unwrap().0;
     let expected_complexity_class = puzzle_data.c.0;
     let mut actual_complexity_class = 3;
     let mut first_iteration = true;
@@ -72,18 +72,18 @@ fn refine_puzzle(puzzle_data: PuzzleData) -> Puzzle {
         puzzle[index] = Some(puzzle_data.solution[index]);
         //println!("puzzle: {puzzle:?}");
         if !first_iteration {
-            actual_complexity_class = classify_puzzle(&puzzle).unwrap().0;
+            actual_complexity_class = classify_puzzle(&puzzle.clone().into()).unwrap().0;
         }
         first_iteration = false;
         //println!("actual_complexity_class: {actual_complexity_class}");
     }
 
-    puzzle
+    puzzle.into()
 }
 
 /// Reinserts one tile per Hamiltonian path, reinserts all the double tiles and returns updated PuzzleData
 fn generate_puzzle(puzzle_data: PuzzleData) -> PuzzleData {
-    let mut puzzle: Puzzle = vec![None; puzzle_data.solution.len()];
+    let mut puzzle: Puzzle = vec![None; puzzle_data.solution.len()].into();
     let hamiltonians = compute_hamiltonian_cycles(&puzzle_data);
     // println!("hamiltonians: {hamiltonians:?}");
     let hamiltonians = hamiltonians.unwrap();
@@ -99,7 +99,7 @@ fn generate_puzzle(puzzle_data: PuzzleData) -> PuzzleData {
             .iter()
             .position(|&t| t == tile_to_reinsert)
             .unwrap();
-        puzzle[index] = Some(tile_to_reinsert);
+        puzzle.0[index] = Some(tile_to_reinsert);
     });
 
     if puzzle_data.n >= 4 {
@@ -115,7 +115,7 @@ fn generate_puzzle(puzzle_data: PuzzleData) -> PuzzleData {
                 .iter()
                 .position(|&t| t == **tile)
                 .unwrap();
-            puzzle[index] = Some(**tile);
+            puzzle.0[index] = Some(**tile);
         });
     }
 
@@ -146,17 +146,23 @@ fn generate_solution(puzzle_data: PuzzleData) -> PuzzleData {
 
 mod tests {
 
+
     #[test]
     fn it_works() {
-        use crate::{generate_valid_puzzle, NUMBER_OF_CLASSES};
+        use crate::{solve_puzzle, validate_puzzle, generate_valid_puzzle, NUMBER_OF_CLASSES};
         const RETRIALS: usize = 10;
         (3..=6).into_iter().for_each(|n| {
             (1..=NUMBER_OF_CLASSES).into_iter().rev().for_each(|c| {
                 (0..=RETRIALS).into_iter().for_each(|_| {
                     println!("Generating puzzle for n = {n} and c = {c}");
-                    let puzzle = generate_valid_puzzle(n)(c);
-                    println!("puzzle: {puzzle:?}");
-                    assert_eq!(puzzle.is_ok(), true, "puzzle should be valid");
+                    let puzzle_result = generate_valid_puzzle(n)(c);
+                    println!("puzzle_result: {puzzle_result:?}");
+                    assert_eq!(puzzle_result.is_ok(), true, "puzzle should be valid");
+                    let puzzle = puzzle_result.unwrap();
+                    let solution_result = solve_puzzle(&puzzle);
+                    assert!(solution_result.is_ok());
+                    let solution = solution_result.unwrap();
+                    assert!(validate_puzzle(&puzzle, &solution).is_ok());
                     println!("*********SUCCESS*********\n\n---------------\n\n");
                 });
             });

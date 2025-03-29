@@ -25,7 +25,7 @@ pub const NUMBER_OF_CLASSES: usize = 3;
 /// * `Err(DominoError)` if an error occurs (for example, if no holes are detected, the puzzle is empty, or if `get_n(puzzle)` fails).
 pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> {
     // Check if the puzzle consists entirely of empty tiles
-    if puzzle.iter().all(|tile| tile.is_none()) {
+    if puzzle.0.iter().all(|tile| tile.is_none()) {
         return Err(DominoError::EmptyPuzzle); // Throw error if all tiles are empty
     }
     println!("puzzle: {puzzle:?}");
@@ -276,7 +276,7 @@ fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: usize, len:
 /// - The first element is the starting index (inclusive) of the hole.
 /// - The second element is the index immediately after the last missing tile (exclusive).
 pub fn detect_holes(puzzle: &Puzzle) -> Vec<(usize, usize)> {
-    let len = puzzle.len();
+    let len = puzzle.0.len();
     let mut holes = Vec::new();
     let mut maybe_start: Option<usize> = None;
     let mut wraps_around = false;
@@ -284,7 +284,7 @@ pub fn detect_holes(puzzle: &Puzzle) -> Vec<(usize, usize)> {
 
     // Iterate through the puzzle to detect holes.
     for i in 0..len {
-        if puzzle[i].is_none() {
+        if puzzle.0[i].is_none() {
             // Mark the start of a new hole if not already marked.
             if maybe_start.is_none() {
                 maybe_start = Some(i);
@@ -343,7 +343,7 @@ mod tests {
         for index in holes {
             puzzle[index] = None;
         }
-        puzzle
+        puzzle.into()
     }
 
     /// Helper function to generate a list of test cases
@@ -455,7 +455,7 @@ mod tests {
             for i in 0..hole_size {
                 puzzle[(hole_start + i) % total_size] = None;
             }
-            puzzle
+            Puzzle(puzzle)
         }
 
         /// Tests complexity calculation for puzzles with n = 3 and various hole lengths.

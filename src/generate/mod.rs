@@ -37,7 +37,7 @@ pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzl
         .collect();
 
     // Convert solution into a puzzle with all tiles initially placed
-    let mut puzzle: Puzzle = solution.into_iter().map(Some).collect();
+    let mut puzzle: Vec<Option<Tile>> = solution.into_iter().map(Some).collect::<Vec<Option<Tile>>>();
 
     // Remove the specified number of tiles
     if puzzle.len() > minimum_removals {
@@ -57,5 +57,5 @@ pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzl
         }
     }
 
-    puzzle
+    puzzle.into()
 }

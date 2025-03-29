@@ -36,7 +36,7 @@ pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
         .map(|tuple| Tile((*tuple).0 as i32, (*tuple).1 as i32).into())
         .collect();
     let tileset_digits = (tileset.len() as f32).log10().floor() as usize + 1;
-    let sequence_digits = (puzzle.len() as f32).log10().floor() as usize + 1;
+    let sequence_digits = (puzzle.0.len() as f32).log10().floor() as usize + 1;
 
     if let Ok(translator) = solver_result {
         let mut solution = puzzle.clone();
@@ -57,9 +57,9 @@ pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
                 [1 + tileset_digits..1 + tileset_digits + sequence_digits]
                 .parse()
                 .unwrap();
-            solution[position_index] = Some(tileset[tile_index])
+            solution.0[position_index] = Some(tileset[tile_index])
         });
-        Ok(solution.iter().map(|option| option.unwrap()).collect())
+        Ok(solution.0.iter().map(|option| option.unwrap()).collect())
     } else {
         Err(DominoError::ModelError(
             "Model failed execution".to_string(),
@@ -85,44 +85,44 @@ pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
 /// * `true` - If a valid solution is found.
 /// * `false` - If no valid placement is possible.
 fn solve_puzzle_r(
-    puzzle: &mut Puzzle,
+    mut puzzle: &mut Puzzle,
     missing_tiles: &HashSet<Tile>,
     current_position: usize,
     start_instant: &Instant,
 ) -> bool {
     // Base case: all positions are filled successfully
-    if current_position == puzzle.len() {
+    if current_position == puzzle.0.len() {
         return true;
     }
 
     // Skip already filled positions
-    if puzzle[current_position].is_some() {
+    if puzzle.0[current_position].is_some() {
         return solve_puzzle_r(puzzle, missing_tiles, current_position + 1, start_instant);
     }
 
     // Try each missing tile
     for &element in missing_tiles {
         if is_valid_placement(puzzle, element, current_position) {
-            puzzle[current_position] = Some(element);
+            puzzle.0[current_position] = Some(element);
 
             if solve_puzzle_r(puzzle, missing_tiles, current_position + 1, start_instant) {
                 return true;
             }
 
             // Backtrack if no solution is found
-            puzzle[current_position] = None;
+            puzzle.0[current_position] = None;
         }
 
         let flipped_element = element.flip();
         if is_valid_placement(puzzle, flipped_element, current_position) {
-            puzzle[current_position] = Some(flipped_element);
+            puzzle.0[current_position] = Some(flipped_element);
 
             if solve_puzzle_r(puzzle, missing_tiles, current_position + 1, start_instant) {
                 return true;
             }
 
             // Backtrack
-            puzzle[current_position] = None;
+            puzzle.0[current_position] = None;
         }
     }
     false
@@ -146,16 +146,16 @@ fn solve_puzzle_r(
 /// * `true` - If the placement is valid.
 /// * `false` - If the placement violates constraints.
 fn is_valid_placement(puzzle: &Puzzle, tile: Tile, position: usize) -> bool {
-    let puzzle_length = puzzle.len();
+    let puzzle_length = puzzle.0.len();
 
-    puzzle.iter().all(|&slot| slot != Some(tile))
-        && (puzzle[(puzzle_length + position - 1) % puzzle_length].is_none()
-            || puzzle[(puzzle_length + position - 1) % puzzle_length]
+    puzzle.0.iter().all(|&slot| slot != Some(tile))
+        && (puzzle.0[(puzzle_length + position - 1) % puzzle_length].is_none()
+            || puzzle.0[(puzzle_length + position - 1) % puzzle_length]
                 .unwrap()
                 .1
                 == tile.0)
-        && (puzzle[(position + 1) % puzzle_length].is_none()
-            || puzzle[(position + 1) % puzzle_length].unwrap().0 == tile.1)
+        && (puzzle.0[(position + 1) % puzzle_length].is_none()
+            || puzzle.0[(position + 1) % puzzle_length].unwrap().0 == tile.1)
 }
 
 /// Determines the missing tiles in the puzzle by comparing with a full tileset.
@@ -186,7 +186,7 @@ pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> 
         .collect();
 
     // Collect all used tiles (including flipped versions)
-    let used_tiles: HashSet<Tile> = puzzle
+    let used_tiles: HashSet<Tile> = puzzle.0
         .iter()
         .filter_map(|&tile| tile.map(|t| vec![t, t.flip()]))
         .flatten()

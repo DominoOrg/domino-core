@@ -69,7 +69,7 @@ fn objective_function(vars: &Variables, puzzle: &Puzzle, solution: &Solution) ->
         .enumerate()
         .filter_map(|(i, tile)| {
             // Ignore positions that are already occupied in the puzzle.
-            if puzzle[i].is_some() {
+            if puzzle.0[i].is_some() {
                 return None;
             }
 

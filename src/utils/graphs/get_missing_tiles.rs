@@ -15,7 +15,7 @@ pub fn get_missing_tiles(puzzle: &Puzzle) -> Result<HashSet<Tile>, DominoError> 
             }
         })
         .collect();
-    let used_tiles: HashSet<Tile> = puzzle
+    let used_tiles: HashSet<Tile> = puzzle.0
         .iter()
         .filter_map(|tile| {
             if tile.is_some() {

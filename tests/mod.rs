@@ -14,16 +14,16 @@ fn test_generate() {
     test_suite().into_iter().for_each(|n| {
         let puzzle = generate_puzzle(n, 1, false);
         if n % 2 == 0 {
-            assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
+            assert_eq!(puzzle.0.len(), (n + 1) * (n + 2) / 2);
         } else {
-            assert_eq!(puzzle.len(), (n + 1) * (n + 1) / 2);
+            assert_eq!(puzzle.0.len(), (n + 1) * (n + 1) / 2);
         }
 
         let puzzle = generate_puzzle(n, 1, true);
         if n % 2 == 0 {
-            assert_eq!(puzzle.len(), (n + 1) * (n + 2) / 2);
+            assert_eq!(puzzle.0.len(), (n + 1) * (n + 2) / 2);
         } else {
-            assert_eq!(puzzle.len(), (n + 1) * (n + 1) / 2);
+            assert_eq!(puzzle.0.len(), (n + 1) * (n + 1) / 2);
         }
     });
 }
@@ -35,14 +35,14 @@ fn test_solve() {
         println!("Puzzle: {puzzle:?}");
         let solution = solve_puzzle(&puzzle).unwrap();
         println!("Solution: {solution:?}");
-        assert_eq!(solution.len(), puzzle.len());
+        assert_eq!(solution.len(), puzzle.0.len());
 
         let puzzle = generate_puzzle(n, 1, true);
         println!("Puzzle: {puzzle:?}");
         let solution = solve_puzzle(&puzzle);
         println!("Solution: {solution:?}");
         if let Ok(solution) = solution {
-            assert_eq!(solution.len(), puzzle.len());
+            assert_eq!(solution.len(), puzzle.0.len());
         }
     });
 }
@@ -65,8 +65,8 @@ fn test_validate() {
                 (n + 1) * (n + 1) / 2
             }
         ];
-        let solution = solve_puzzle(&puzzle).unwrap();
-        let result = validate_puzzle(&puzzle, &solution);
+        let solution = solve_puzzle(&puzzle.clone().into()).unwrap();
+        let result = validate_puzzle(&puzzle.into(), &solution);
         assert!(result.is_err());
     });
 }
