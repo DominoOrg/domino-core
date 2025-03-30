@@ -67,7 +67,8 @@ fn bench_solve() {
             now = Instant::now();
             duration = now.elapsed();
             durations.push(duration);
-            let solution = solve_puzzle(&puzzle).unwrap();
+            let solution = solve_puzzle(&puzzle)
+                .expect("Failed to solve puzzle");
             assert_eq!(solution.len(), puzzle.0.len());
 
             let puzzle = generate_puzzle(n, 1, true);
@@ -98,9 +99,8 @@ fn bench_validate() {
         for _ in 0..TEST_REPETITIONS {
             // For each length a puzzle with a single tile missing is always valid
             let puzzle = generate_puzzle(n, 1, false);
-            let solution = solve_puzzle(&puzzle).unwrap();
             now = Instant::now();
-            let result = validate_puzzle(&puzzle, &solution);
+            let result = validate_puzzle(&puzzle);
             duration = now.elapsed();
             durations.push(duration);
             assert!(result.is_ok());
@@ -114,9 +114,8 @@ fn bench_validate() {
                     (n + 1) * (n + 1) / 2
                 }
             ];
-            let solution = solve_puzzle(&puzzle.clone().into()).unwrap();
             now = Instant::now();
-            let result = validate_puzzle(&puzzle.into(), &solution);
+            let result = validate_puzzle(&puzzle.into());
             duration = now.elapsed();
             durations.push(duration);
             assert!(result.is_err());
@@ -193,12 +192,10 @@ fn bench_all() {
         for _ in 0..TEST_REPETITIONS {
           let now: Instant = Instant::now();
           let puzzle = generate_puzzle(n, minimum_removals, false);
-          solve_puzzle(&puzzle)
-          .ok()
-          .filter(|solution| validate_puzzle(&puzzle, solution).is_ok())
-          .map_or_else(|| {
+          validate_puzzle(&puzzle)
+          .map_or_else(|_| {
             durations.borrow_mut().push(now.elapsed());
-          }, |_solution| {
+          }, |_| {
             let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
             let duration = now.elapsed();
             durations.borrow_mut().push(duration);

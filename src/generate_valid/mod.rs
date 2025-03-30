@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        use crate::{solve_puzzle, validate_puzzle, generate_valid_puzzle, NUMBER_OF_CLASSES};
+        use crate::{validate_puzzle, generate_valid_puzzle, NUMBER_OF_CLASSES};
         const RETRIALS: usize = 10;
         (3..=6).into_iter().for_each(|n| {
             (1..=NUMBER_OF_CLASSES).into_iter().rev().for_each(|c| {
@@ -159,10 +159,7 @@ mod tests {
                     println!("puzzle_result: {puzzle_result:?}");
                     assert_eq!(puzzle_result.is_ok(), true, "puzzle should be valid");
                     let puzzle = puzzle_result.unwrap();
-                    let solution_result = solve_puzzle(&puzzle);
-                    assert!(solution_result.is_ok());
-                    let solution = solution_result.unwrap();
-                    assert!(validate_puzzle(&puzzle, &solution).is_ok());
+                    assert!(validate_puzzle(&puzzle).is_ok());
                     println!("*********SUCCESS*********\n\n---------------\n\n");
                 });
             });

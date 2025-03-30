@@ -226,6 +226,7 @@ impl ModelParser {
             }
 
             // Parse coefficient and add term
+            println!("coefficient_str: {coefficient_str}");
             let coefficient = sign * coefficient_str.parse::<f64>().unwrap();
             terms.push((coefficient, buffer.clone())); // Remainder of buffer is the variable name
 

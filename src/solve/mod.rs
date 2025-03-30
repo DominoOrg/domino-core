@@ -26,7 +26,7 @@ use crate::{
 /// * `Err(DominoError::InvalidPuzzle)` - If the puzzle input is invalid.
 pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
     let model_string = compute_model(puzzle)?;
-    // println!("Model: {}", model_string);
+    println!("Model: {}", model_string);
     // Execute the model to obtain a solver result.
     let solver_result = Model::execute(model_string.clone());
 

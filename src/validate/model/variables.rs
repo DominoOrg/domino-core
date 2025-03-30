@@ -91,15 +91,10 @@ impl Variables {
 pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
     let n = get_n(puzzle)? as usize;
 
-    let tileset = create_tileset(n)
+    let tileset: Vec<(usize, (usize, usize))> = create_tileset(n)
         .into_iter()
         .enumerate()
-        .filter(|(_, tile)| {
-            let tile = Tile(tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
-            !puzzle.0
-                .iter()
-                .any(|&puzzle_tile| puzzle_tile == Some(tile) || puzzle_tile == Some(tile.flip()))
-        })
+        .map(|(i, tile)| (i, tile))
         .collect();
 
     let mapped_variables = generate_combinations(tileset, n)

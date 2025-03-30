@@ -1,5 +1,7 @@
 //! This module defines constraints for the optimization model, ensuring valid tile placement and adjacency rules.
 
+use itertools::Itertools;
+
 use super::{
     helpers::{collect_labels, create_bound_string},
     variables::{Variable, Variables},
@@ -126,7 +128,7 @@ pub fn next_adjacent_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
 /// An `Option<String>` containing the adjacency constraint if applicable.
 fn next_enforced_bound(vars: &Variables, tile: Tile, position: usize) -> Option<String> {
     let number = tile.0 as usize;
-    let condition = |var: &Variable| var.tile.1 == number.try_into().unwrap();
+    let condition = |var: &Variable| var.tile.1 == number;
     let left_member_variables: Vec<String> =
         variables_at_position_with_condition(vars, position, condition);
 
@@ -153,12 +155,12 @@ fn next_enforced_bound(vars: &Variables, tile: Tile, position: usize) -> Option<
 ///
 /// An `Option<String>` containing the adjacency constraint if applicable.
 fn next_bound(puzzle: &Puzzle, vars: &Variables, position: usize, number: usize) -> Option<String> {
-    let condition = |var: &Variable| var.tile.1 == number.try_into().unwrap();
+    let condition = |var: &Variable| var.tile.1 == number;
     let left_member_variables: Vec<String> =
         variables_at_position_with_condition(vars, position, condition);
 
     let next_position = (position + 1) % puzzle.0.len();
-    let condition = |var: &Variable| var.tile.0 == number.try_into().unwrap();
+    let condition = |var: &Variable| var.tile.0 == number;
     let right_member_variables: Vec<String> =
         variables_at_position_with_condition(vars, next_position, condition);
 
@@ -201,4 +203,29 @@ fn variables_at_position_with_condition(
         .filter(|var| condition(var))
         .map(|var| var.label)
         .collect()
+}
+
+/// Generates a constraint ensuring the tiles of the puzzle are set to one.
+///
+/// This function ensures that each tile in the puzzle is set to one, indicating that the tile is present.
+///
+/// # Arguments
+///
+/// * `puzzle` - A reference to the `Puzzle` structure representing the puzzle configuration.
+/// * `vars` - A reference to the `Variables` structure containing decision variables.
+///
+/// # Returns
+///
+/// A vector of strings representing the constraint.
+pub fn partial_tiles_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
+  let mut prob_bounds = Vec::new();
+
+  for (index, tile) in puzzle.0.iter().enumerate() {
+      if let Some(tile) = tile {
+          let label = vars.by_tile.get(&(tile.0 as usize, tile.1 as usize)).unwrap().iter().filter(|variable| variable.position == index).next().unwrap().label.clone();
+          prob_bounds.push(format!("{} = 1", label));
+      }
+  }
+
+  prob_bounds
 }

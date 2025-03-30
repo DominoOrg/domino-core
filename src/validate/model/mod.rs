@@ -3,11 +3,12 @@
 //! It includes constraint generation, objective function computation, and model formulation
 //! using mathematical optimization principles.
 
+use bounds::partial_tiles_bound;
 use helpers::sorting_label;
 use itertools::Itertools;
 
 use crate::stringify_variables;
-use crate::utils::{DominoError, Puzzle, Solution};
+use crate::utils::{DominoError, Puzzle};
 
 use super::model::bounds::{
     each_position_filled_bound, each_tile_used_once_bound, next_adjacent_bound,
@@ -36,6 +37,8 @@ pub mod variables;
 fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
 
+    prob_bounds.extend(vec!["y = 0".to_string()].into_iter());
+
     // Add constraints to ensure each tile is used only once.
     prob_bounds.extend(each_tile_used_once_bound(vars));
 
@@ -45,51 +48,12 @@ fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     // Add constraints to enforce adjacency rules.
     prob_bounds.extend(next_adjacent_bound(puzzle, vars));
 
+    // Set the tiles of the puzzle as one's
+    prob_bounds.extend(partial_tiles_bound(puzzle, vars));
+
     prob_bounds
 }
 
-/// Constructs the objective function for the optimization model.
-///
-/// The objective function minimizes the number of missing tiles in the puzzle by
-/// summing decision variables corresponding to empty positions.
-///
-/// # Arguments
-///
-/// * `vars` - A reference to the `Variables` structure containing decision variables.
-/// * `puzzle` - A reference to the `Puzzle` for which the objective function is created.
-/// * `solution` - A reference to the `Solution` representing the proposed solution.
-///
-/// # Returns
-///
-/// A string representing the linear objective function to be minimized.
-fn objective_function(vars: &Variables, puzzle: &Puzzle, solution: &Solution) -> String {
-    let labels = solution
-        .clone()
-        .into_iter()
-        .enumerate()
-        .filter_map(|(i, tile)| {
-            // Ignore positions that are already occupied in the puzzle.
-            if puzzle.0[i].is_some() {
-                return None;
-            }
-
-            // Convert tile values to usize for indexing.
-            let tile: (usize, usize) = (tile.0.try_into().unwrap(), tile.1.try_into().unwrap());
-
-            // Retrieve the variable corresponding to the tile at the given position.
-            if let Some(tiles) = vars.by_tile.get(&tile) {
-                let variable = tiles.iter().filter(|var| var.position == i).next()?;
-                Some(variable.label.clone())
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<String>>();
-
-    // Convert the list of variable labels into a formatted string representation.
-    let obj = stringify_variables!(labels, " ");
-    obj
-}
 
 /// Computes a mathematical optimization model for the given puzzle and solution.
 ///
@@ -113,12 +77,12 @@ fn objective_function(vars: &Variables, puzzle: &Puzzle, solution: &Solution) ->
 /// This function returns an error if:
 /// - The variable generation fails, the puzzle is malformed.
 /// - There is an issue forming the constraints or objective function, the puzzle is malformed.
-pub fn compute_model(puzzle: &Puzzle, solution: &Solution) -> Result<String, DominoError> {
+pub fn compute_model(puzzle: &Puzzle) -> Result<String, DominoError> {
     // Generate decision variables for the puzzle.
     let prob_vars = variables(puzzle)?;
 
     // Compute the objective function to minimize missing tiles.
-    let prob_obj = objective_function(&prob_vars, puzzle, solution);
+    let prob_obj = "y".to_string();
 
     // Generate constraints (bounds) for valid tile placement.
     let prob_bounds = bounds(puzzle, &prob_vars);

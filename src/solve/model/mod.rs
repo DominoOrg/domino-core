@@ -3,11 +3,11 @@
 //! It includes constraint generation, objective function computation, and model formulation
 //! using mathematical optimization principles.
 
+use bounds::partial_tiles_bound;
 use helpers::sorting_label;
 use itertools::Itertools;
 
-use crate::stringify_variables;
-use crate::utils::{DominoError, Puzzle, Solution};
+use crate::utils::{DominoError, Puzzle};
 
 use super::model::bounds::{
     each_position_filled_bound, each_tile_used_once_bound, next_adjacent_bound,
@@ -36,6 +36,8 @@ pub mod variables;
 fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     let mut prob_bounds = Vec::new();
 
+    prob_bounds.extend(vec!["y = 0".to_string()].into_iter());
+
     // Add constraints to ensure each tile is used only once.
     prob_bounds.extend(each_tile_used_once_bound(vars));
 
@@ -45,33 +47,10 @@ fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
     // Add constraints to enforce adjacency rules.
     prob_bounds.extend(next_adjacent_bound(puzzle, vars));
 
-    prob_bounds
-}
+    // Add constraints to ensure each position in the puzzle scheme is filled.
+    prob_bounds.extend(partial_tiles_bound(puzzle, vars));
 
-/// Constructs the objective function for the optimization model.
-///
-/// The objective function minimizes the number of missing tiles in the puzzle by
-/// summing decision variables corresponding to empty positions.
-///
-/// # Arguments
-///
-/// * `vars` - A reference to the `Variables` structure containing decision variables.
-/// * `puzzle` - A reference to the `Puzzle` for which the objective function is created.
-/// * `solution` - A reference to the `Solution` representing the proposed solution.
-///
-/// # Returns
-///
-/// A string representing the linear objective function to be minimized.
-fn objective_function(vars: &Variables) -> String {
-    let labels: Vec<String> = vars
-        .by_label
-        .clone()
-        .into_values()
-        .map(|var| var.label)
-        .collect();
-    // Convert the list of variable labels into a formatted string representation.
-    let obj = stringify_variables!(labels, " ");
-    obj
+    prob_bounds
 }
 
 /// Computes a mathematical optimization model for the given puzzle and solution.
@@ -101,7 +80,7 @@ pub fn compute_model(puzzle: &Puzzle) -> Result<String, DominoError> {
     let prob_vars = variables(puzzle)?;
 
     // Compute the objective function to minimize missing tiles.
-    let prob_obj = objective_function(&prob_vars);
+    let prob_obj = "y".to_string();
 
     // Generate constraints (bounds) for valid tile placement.
     let prob_bounds = bounds(puzzle, &prob_vars);
