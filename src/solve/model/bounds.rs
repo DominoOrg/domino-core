@@ -1,7 +1,4 @@
 //! This module defines constraints for the optimization model, ensuring valid tile placement and adjacency rules.
-
-use itertools::Itertools;
-
 use super::{
     helpers::{collect_labels, create_bound_string},
     variables::{Variable, Variables},

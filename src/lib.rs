@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 mod classify;
 mod generate;
 mod generate_valid;

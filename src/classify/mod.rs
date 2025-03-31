@@ -75,6 +75,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
 /// # Panics
 ///
 /// This function panics if an invalid `ComplexityClass` is provided.
+#[allow(dead_code)]
 pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize) {
     // Compute the derived length `l` based on the puzzle's dimension `n`
     let l = if n % 2 == 0 {
@@ -162,6 +163,7 @@ pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize)
 /// assert_eq!(min_x, compute_threshold(1));
 /// assert_eq!(max_x, compute_threshold(2));
 /// ```
+#[allow(dead_code)]
 fn inverse_class_mapping(class: ComplexityClass) -> Option<(f32, f32)> {
     if class < 1 || class > NUMBER_OF_CLASSES {
         return None;

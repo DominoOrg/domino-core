@@ -1,4 +1,9 @@
+#![allow(deprecated)]
+
 use bencher::format_duration;
+
+mod bencher;
+
 use domino_lib::{
     classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, ComplexityClass,
 };
@@ -8,7 +13,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-mod bencher;
 
 fn bench_test_suite() -> Vec<usize> {
     // todo!("Add more lengths to test suite");
@@ -27,6 +31,7 @@ fn bench_generate() {
         let mut duration: Duration;
         for _ in 0..TEST_REPETITIONS {
             now = Instant::now();
+
             let puzzle = generate_puzzle(n, 1, false);
             duration = now.elapsed();
             durations.push(duration);
@@ -37,6 +42,7 @@ fn bench_generate() {
             }
 
             now = Instant::now();
+
             let puzzle = generate_puzzle(n, 1, true);
             duration = now.elapsed();
             durations.push(duration);
@@ -63,6 +69,7 @@ fn bench_solve() {
         let mut now: Instant;
         let mut duration: Duration;
         for _ in 0..TEST_REPETITIONS {
+
             let puzzle = generate_puzzle(n, 1, false);
             now = Instant::now();
             duration = now.elapsed();
@@ -71,7 +78,8 @@ fn bench_solve() {
                 .expect("Failed to solve puzzle");
             assert_eq!(solution.len(), puzzle.0.len());
 
-            let puzzle = generate_puzzle(n, 1, true);
+
+            let puzzle = generate_puzzle(n, 1, false);
             now = Instant::now();
             let solution = solve_puzzle(&puzzle);
             duration = now.elapsed();
@@ -98,6 +106,7 @@ fn bench_validate() {
         let mut duration: Duration;
         for _ in 0..TEST_REPETITIONS {
             // For each length a puzzle with a single tile missing is always valid
+
             let puzzle = generate_puzzle(n, 1, false);
             now = Instant::now();
             let solution = solve_puzzle(&puzzle).unwrap();
@@ -154,6 +163,7 @@ fn bench_classify() {
         let mut now: Instant;
         let mut duration: Duration;
         for _ in 0..TEST_REPETITIONS {
+
           let puzzle = generate_puzzle(n, minimum_removals, false);
           now = Instant::now();
           let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
@@ -193,6 +203,7 @@ fn bench_all() {
         let durations: Rc<RefCell<Vec<Duration>>> = Rc::new(RefCell::new(vec![]));
         for _ in 0..TEST_REPETITIONS {
           let now: Instant = Instant::now();
+
           let puzzle = generate_puzzle(n, minimum_removals, false);
           let solution = solve_puzzle(&puzzle).unwrap();
           let result = validate_puzzle(&puzzle, &solution);
