@@ -218,8 +218,20 @@ pub fn partial_tiles_bound(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
 
     for (index, tile) in puzzle.0.iter().enumerate() {
         if let Some(tile) = tile {
-            let label = vars.by_tile.get(&(tile.0 as usize, tile.1 as usize)).unwrap().iter().filter(|variable| variable.position == index).next().unwrap().label.clone();
-            prob_bounds.push(format!("{} = 1", label));
+
+            let variables = vars
+            .by_tile.get(&(tile.0 as usize, tile.1 as usize));
+
+            if let Some(variables) = variables {
+              let first = variables.iter().filter(|variable| variable.position == index)
+              .next();
+              if let Some(tile) = first {
+                let label = tile.label.clone();
+                prob_bounds.push(format!("{} = 1", label));
+              }
+            }
+
+
         }
     }
 

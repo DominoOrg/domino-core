@@ -52,7 +52,8 @@ fn test_validate() {
     test_suite().into_iter().for_each(|n| {
         // For each length a puzzle with a single tile missing is always valid
         let puzzle = generate_puzzle(n, 1, false);
-        let result = validate_puzzle(&puzzle);
+        let solution = solve_puzzle(&puzzle).unwrap();
+        let result = validate_puzzle(&puzzle, &solution);
         assert!(result.is_ok());
 
         // For each length an empty puzzle should result in not valid
@@ -63,8 +64,9 @@ fn test_validate() {
             } else {
                 (n + 1) * (n + 1) / 2
             }
-        ];
-        let result = validate_puzzle(&puzzle.into());
+        ].into();
+        let solution = solve_puzzle(&puzzle).unwrap();
+        let result = validate_puzzle(&puzzle, &solution);
         assert!(result.is_err());
     });
 }
@@ -119,7 +121,8 @@ fn test_all() {
                 };
                 let minimum_removals = (max_hole as f32 * log_factor.sqrt()).ceil() as usize;
                 let puzzle = generate_puzzle(n, minimum_removals, false);
-                validate_puzzle(&puzzle)
+                let solution = solve_puzzle(&puzzle).unwrap();
+                let _ = validate_puzzle(&puzzle, &solution)
                     .map(|_solution| {
                         let computed_complexity = classify_puzzle(&puzzle)
                             .expect("Failed to classify puzzle: {puzzle:?}");

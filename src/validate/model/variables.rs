@@ -3,7 +3,7 @@
 //! It includes structures and functions to manage variables, generate tile combinations,
 //! and construct labeled variables for a given puzzle.
 
-use crate::utils::{get_n, DominoError, Puzzle, Tile};
+use crate::utils::{get_n, DominoError, Puzzle};
 use std::collections::HashMap;
 
 /// Represents a decision variable in the optimization model.
@@ -99,7 +99,6 @@ pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
 
     let mapped_variables = generate_combinations(tileset, n)
         .into_iter()
-        .filter(|var| puzzle.0.get(var.position).unwrap().is_none())
         .collect();
 
     Ok(Variables::new(mapped_variables))

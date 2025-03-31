@@ -100,7 +100,8 @@ fn bench_validate() {
             // For each length a puzzle with a single tile missing is always valid
             let puzzle = generate_puzzle(n, 1, false);
             now = Instant::now();
-            let result = validate_puzzle(&puzzle);
+            let solution = solve_puzzle(&puzzle).unwrap();
+            let result = validate_puzzle(&puzzle, &solution);
             duration = now.elapsed();
             durations.push(duration);
             assert!(result.is_ok());
@@ -113,9 +114,10 @@ fn bench_validate() {
                 } else {
                     (n + 1) * (n + 1) / 2
                 }
-            ];
+            ].into();
             now = Instant::now();
-            let result = validate_puzzle(&puzzle.into());
+            let solution = solve_puzzle(&puzzle).unwrap();
+            let result = validate_puzzle(&puzzle, &solution);
             duration = now.elapsed();
             durations.push(duration);
             assert!(result.is_err());
@@ -192,8 +194,9 @@ fn bench_all() {
         for _ in 0..TEST_REPETITIONS {
           let now: Instant = Instant::now();
           let puzzle = generate_puzzle(n, minimum_removals, false);
-          validate_puzzle(&puzzle)
-          .map_or_else(|_| {
+          let solution = solve_puzzle(&puzzle).unwrap();
+          let result = validate_puzzle(&puzzle, &solution);
+          result.map_or_else(|_| {
             durations.borrow_mut().push(now.elapsed());
           }, |_| {
             let computed_complexity = classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");

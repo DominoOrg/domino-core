@@ -1,9 +1,6 @@
 use model::{compute_model, variables::create_tileset};
 
-use crate::{
-    utils::{get_n, DominoError, Model, Puzzle, ResultTranslator},
-    Tile,
-};
+use crate::{utils::{get_n, DominoError, Model, Puzzle, ResultTranslator}, Solution, Tile};
 
 mod model;
 
@@ -32,9 +29,9 @@ mod model;
 /// - If `compute_model()` returns an error.
 /// - If `Model::execute()` fails to execute the computed model.
 /// - If the extracted objective value does not match the expected missing tile count.
-pub fn validate_puzzle(puzzle: &Puzzle) -> Result<(), DominoError> {
+pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), DominoError> {
     // Compute a string-based model representation for the puzzle and solution.
-    let string_model = compute_model(puzzle)?;
+    let string_model = compute_model(puzzle, solution)?;
     println!("string_model: {string_model}");
     // Execute the model to obtain a solver result.
     let solver_result = Model::execute(string_model.clone());
@@ -107,8 +104,22 @@ mod tests {
             None,
             None,
         ];
+        let solution = vec![
+            (0, 0).into(),
+            (0, 1).into(),
+            (1, 1).into(),
+            (1, 2).into(),
+            (2, 2).into(),
+            (2, 3).into(),
+            (3, 3).into(),
+            (3, 0).into(),
+        ];
         println!("Testing valid puzzle with single hole: {:?}", puzzle);
-        assert!(validate_puzzle(&puzzle.into()).is_ok());
+        println!("Solve model:");
+        println!("Validate model:");
+        let result = validate_puzzle(&puzzle.into(), &solution.into());
+        println!("Validation result: {:?}", result);
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -123,15 +134,35 @@ mod tests {
             None,
             None,
         ];
+        let solution = vec![
+          (0, 0).into(),
+          (0, 1).into(),
+          (1, 1).into(),
+          (1, 2).into(),
+          (2, 2).into(),
+          (2, 3).into(),
+          (3, 3).into(),
+          (3, 0).into(),
+        ];
         println!("Testing valid puzzle with multiple holes: {:?}", puzzle);
-        assert!(validate_puzzle(&puzzle.into()).is_ok());
+        assert!(validate_puzzle(&puzzle.into(), &solution).is_ok());
     }
 
     #[test]
     fn test_validate_empty_puzzle() {
         let puzzle = vec![];
+        let solution = vec![
+          (0, 0).into(),
+          (0, 1).into(),
+          (1, 1).into(),
+          (1, 2).into(),
+          (2, 2).into(),
+          (2, 3).into(),
+          (3, 3).into(),
+          (3, 0).into(),
+        ];
         println!("Testing empty puzzle: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle.into());
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -139,8 +170,18 @@ mod tests {
     #[test]
     fn test_validate_double_tiles_no_orientation() {
         let puzzle = vec![Some((0, 0).into()), None, None, None, None, None, None];
+        let solution = vec![
+          (0, 0).into(),
+          (0, 1).into(),
+          (1, 1).into(),
+          (1, 2).into(),
+          (2, 2).into(),
+          (2, 3).into(),
+          (3, 3).into(),
+          (3, 0).into(),
+        ];
         println!("Testing double tiles no orientation: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle.into());
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -148,8 +189,18 @@ mod tests {
     #[test]
     fn test_validate_single_tile_orientation() {
         let puzzle = vec![Some((0, 1).into()), None, None, None, None, None, None];
+        let solution = vec![
+            (0, 1).into(),
+            (1, 1).into(),
+            (1, 2).into(),
+            (2, 2).into(),
+            (2, 3).into(),
+            (3, 3).into(),
+            (3, 0).into(),
+            (0, 0).into(),
+        ];
         println!("Testing single tile orientation: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle.into());
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -157,8 +208,18 @@ mod tests {
     #[test]
     fn test_validate_invalid_puzzle_empty() {
         let puzzle = vec![None; 8];
+        let solution = vec![
+            (0, 1).into(),
+            (1, 1).into(),
+            (1, 2).into(),
+            (2, 2).into(),
+            (2, 3).into(),
+            (3, 3).into(),
+            (3, 0).into(),
+            (0, 0).into(),
+        ];
         println!("Testing invalid empty puzzle: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle.into());
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -166,7 +227,7 @@ mod tests {
     #[test]
     fn test_validate_invalid_puzzle_invalid_size() {
         let puzzle = vec![None; 9];
-        let result = validate_puzzle(&puzzle.into());
+        let result = validate_puzzle(&puzzle.into(), &vec![]);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }
@@ -183,8 +244,18 @@ mod tests {
             None,
             None,
         ];
+        let solution = vec![
+          (0, 0).into(),
+          (0, 1).into(),
+          (1, 1).into(),
+          (1, 2).into(),
+          (2, 2).into(),
+          (2, 3).into(),
+          (3, 3).into(),
+          (3, 0).into(),
+        ];
         println!("Testing puzzle with an ambiguous solution: {:?}", puzzle);
-        let result = validate_puzzle(&puzzle.into());
+        let result = validate_puzzle(&puzzle.into(), &solution);
         println!("Validation result: {:?}", result);
         assert!(result.is_err());
     }

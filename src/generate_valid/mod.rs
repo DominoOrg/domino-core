@@ -146,10 +146,10 @@ fn generate_solution(puzzle_data: PuzzleData) -> PuzzleData {
 
 mod tests {
 
-
     #[test]
     fn it_works() {
-        use crate::{validate_puzzle, generate_valid_puzzle, NUMBER_OF_CLASSES};
+      use crate::solve_puzzle;
+      use crate::{validate_puzzle, generate_valid_puzzle, NUMBER_OF_CLASSES};
         const RETRIALS: usize = 10;
         (3..=6).into_iter().for_each(|n| {
             (1..=NUMBER_OF_CLASSES).into_iter().rev().for_each(|c| {
@@ -159,8 +159,8 @@ mod tests {
                     println!("puzzle_result: {puzzle_result:?}");
                     assert_eq!(puzzle_result.is_ok(), true, "puzzle should be valid");
                     let puzzle = puzzle_result.unwrap();
-                    assert!(validate_puzzle(&puzzle).is_ok());
-                    println!("*********SUCCESS*********\n\n---------------\n\n");
+                    let solution = solve_puzzle(&puzzle).unwrap();
+                    let _ = validate_puzzle(&puzzle, &solution);
                 });
             });
         });
