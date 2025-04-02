@@ -8,4 +8,6 @@ repository = "https://github.com/DominoOrg/domino-lib"
 
 
 [dependencies]
-domino-lib = { path = "../domino-lib" }
+domino-lib = "*"
+clap = { version = "4.4", features = ["derive"] }
+serde_json = "1.0.140"
