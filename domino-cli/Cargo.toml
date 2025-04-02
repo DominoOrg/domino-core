@@ -1,0 +1,11 @@
+[package]
+name = "domino-cli"
+description = "Domino cli, simple usage and installation of the domino-lib"
+authors = ["Nunzio Onorati <nunzioonorati@gmail.com>"]
+license = "MIT"
+edition = "2021"
+repository = "https://github.com/DominoOrg/domino-lib"
+
+
+[dependencies]
+domino-lib = { path = "../domino-lib" }
