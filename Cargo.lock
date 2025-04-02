@@ -188,15 +188,15 @@ name = "domino-cli"
 version = "0.0.0"
 dependencies = [
  "clap",
- "domino-lib 1.3.2",
+ "domino-lib 1.3.3",
  "serde_json",
 ]
 
 [[package]]
 name = "domino-lib"
-version = "1.3.2"
+version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74fc04640c4d59bcf9a764e944b32f8273db780ed7b01761e749aec54ecc478c"
+checksum = "4d5d3fffdbb33d757b111bb14f253e23795d533eb80d87c0353307cf80d0dc62"
 dependencies = [
  "anyhow",
  "good_lp",
@@ -208,7 +208,7 @@ dependencies = [
 
 [[package]]
 name = "domino-lib"
-version = "1.3.3"
+version = "1.3.4"
 dependencies = [
  "anyhow",
  "good_lp",

@@ -32,7 +32,7 @@ mod model;
 pub fn validate_puzzle(puzzle: &Puzzle, solution: &Solution) -> Result<(), DominoError> {
     // Compute a string-based model representation for the puzzle and solution.
     let string_model = compute_model(puzzle, solution)?;
-    println!("string_model: {string_model}");
+    // println!("string_model: {string_model}");
     // Execute the model to obtain a solver result.
     let solver_result = Model::execute(string_model.clone());
 

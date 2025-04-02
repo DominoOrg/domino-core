@@ -1,5 +1,5 @@
 use clap::Parser;
-use domino_lib::{generate_puzzle, validate_puzzle, Puzzle, Tile};
+use domino_library::{generate_puzzle, validate_puzzle, Puzzle, Tile};
 use serde_json::Value;
 
 #[derive(Parser)]
@@ -32,13 +32,15 @@ fn main() {
 
     match &cli.command {
         Commands::GeneratePuzzle { n, minimum_removals, random} => {
-            let puzzle =  domino_lib::generate_puzzle(*n as usize, *minimum_removals as usize, *random);
+            let puzzle = generate_puzzle(*n as usize, *minimum_removals as usize, *random);
             println!("{:?}", puzzle);
         },
         #[allow(unused_variables)]
         Commands::ValidatePuzzle { puzzle, solution } => {
             let puzzle = serialize_puzzle(puzzle.to_string());
-            let result = validate_puzzle(&puzzle);
+            let solution = serialize_solution(solution.to_string());
+            let result = validate_puzzle(&puzzle, &solution);
+            println!("{:?}", result);
         }
     }
 }
@@ -56,4 +58,15 @@ fn serialize_puzzle(puzzle: String) -> Puzzle {
     }
   }
   Puzzle(tiles)
+}
+
+fn serialize_solution(solution: String) -> Vec<Tile> {
+  let result: Value = serde_json::from_str(&solution).unwrap();
+  let mut tiles: Vec<Tile> = vec![];
+  for tile in result.as_array().unwrap() {
+    let left = tile.get(0).unwrap().as_i64().unwrap() as i32;
+    let right = tile.get(1).unwrap().as_i64().unwrap() as i32;
+    tiles.push(Tile(left, right));
+  }
+  tiles
 }

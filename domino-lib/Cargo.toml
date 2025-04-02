@@ -1,6 +1,6 @@
 [package]
 name = "domino-lib"
-version = "1.3.3"
+version = "1.3.4"
 description = "Domino library, create sequences and puzzles, solve and validate them in rust"
 repository = "https://github.com/DominoOrg/domino-lib"
 license = "MIT"
@@ -8,7 +8,6 @@ edition = "2021"
 authors = ["Nunzio Onorati <nunzioonorati@gmail.com>"]
 
 [lib]
-name = "domino_library"
 path = "src/lib.rs"
 
 [dependencies]
