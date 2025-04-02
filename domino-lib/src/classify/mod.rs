@@ -28,7 +28,7 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
     if puzzle.0.iter().all(|tile| tile.is_none()) {
         return Err(DominoError::EmptyPuzzle); // Throw error if all tiles are empty
     }
-    println!("puzzle: {puzzle:?}");
+    // println!("puzzle: {puzzle:?}");
 
     // Retrieve the dimension of the puzzle (n) and propagate errors if any.
     let n: usize = get_n(puzzle)? as usize;

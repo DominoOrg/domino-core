@@ -1,5 +1,7 @@
+#![allow(deprecated)]
+
 use clap::Parser;
-use domino_library::{generate_puzzle, validate_puzzle, Puzzle, Tile};
+use domino_lib::{generate_puzzle, solve_puzzle, validate_puzzle, classify_puzzle, Puzzle, Tile};
 use serde_json::Value;
 
 #[derive(Parser)]
@@ -24,6 +26,14 @@ enum Commands {
         puzzle: String,
         #[arg(short, long)]
         solution: String
+    },
+    SolvePuzzle {
+        #[arg(short, long)]
+        puzzle: String
+    },
+    ClassifyPuzzle {
+        #[arg(short, long)]
+        puzzle: String
     }
 }
 
@@ -33,14 +43,24 @@ fn main() {
     match &cli.command {
         Commands::GeneratePuzzle { n, minimum_removals, random} => {
             let puzzle = generate_puzzle(*n as usize, *minimum_removals as usize, *random);
-            println!("{:?}", puzzle);
+            println!("Puzzle: {:?}", puzzle);
         },
         #[allow(unused_variables)]
         Commands::ValidatePuzzle { puzzle, solution } => {
             let puzzle = serialize_puzzle(puzzle.to_string());
             let solution = serialize_solution(solution.to_string());
             let result = validate_puzzle(&puzzle, &solution);
-            println!("{:?}", result);
+            println!("Is valid: {}", result.is_ok());
+        },
+        Commands::SolvePuzzle { puzzle } => {
+            let puzzle = serialize_puzzle(puzzle.to_string());
+            let solution = solve_puzzle(&puzzle);
+            println!("Solution: {:?}", solution);
+        },
+        Commands::ClassifyPuzzle { puzzle } => {
+            let puzzle = serialize_puzzle(puzzle.to_string());
+            let result = classify_puzzle(&puzzle);
+            println!("Classification: {:?}", result);
         }
     }
 }
