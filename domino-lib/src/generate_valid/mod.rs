@@ -26,11 +26,12 @@ pub fn generate_valid_puzzle(n: usize) -> Box<dyn Fn(usize) -> Result<Puzzle, Do
                 .map(generate_solution)
                 .map(|puzzle_data| {
                     let solution = puzzle_data.solution.clone();
-                    (puzzle_data, Tournament::new(solution).unwrap())
-                })
-                .map(|(puzzle_data, tournament)| PuzzleData {
-                    tournament: Some(tournament),
-                    ..puzzle_data
+                    let tournament = Tournament::new(solution.clone()).ok();
+                    PuzzleData {
+                        solution,
+                        tournament,
+                        ..puzzle_data
+                    }
                 })
                 .map(generate_puzzle)
                 .map(refine_puzzle)
