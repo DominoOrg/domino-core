@@ -20,7 +20,6 @@ use rand::Rng;
 /// # Returns
 ///
 /// A `Puzzle` instance with `Some(Tile)` values for placed tiles and `None` for removed tiles.
-#[deprecated(since = "1.0.0", note = "use `generate_valid_puzzle` instead")]
 pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzle {
     let graph = Graph::regular(n);
     let eulerian_cycle = find_eulerian_cycle(&graph)(random);
@@ -44,6 +43,40 @@ pub fn generate_puzzle(n: usize, minimum_removals: usize, random: bool) -> Puzzl
         if random {
             let mut rng = rand::thread_rng();
             for _ in 0..minimum_removals {
+                let mut index = rng.gen_range(0..puzzle.len());
+                while puzzle[index].is_none() {
+                    index = rng.gen_range(0..puzzle.len());
+                }
+                puzzle[index] = None;
+            }
+
+            // Check if the condition is met
+            while !{
+                let mut count = 0;
+                let mut sequences = 0;
+                for tile in puzzle.iter() {
+                    match tile {
+                        None => {
+                            count += 1;
+                            if count >= minimum_removals {
+                                sequences += 1;
+                                count = 0;
+                            }
+                        }
+                        Some(_) => {
+                            if count >= minimum_removals {
+                                sequences += 1;
+                            }
+                            count = 0;
+                        }
+                    }
+                }
+                if count >= minimum_removals {
+                    sequences += 1;
+                }
+                sequences < 2
+            } {
+                // Remove one more tile
                 let mut index = rng.gen_range(0..puzzle.len());
                 while puzzle[index].is_none() {
                     index = rng.gen_range(0..puzzle.len());

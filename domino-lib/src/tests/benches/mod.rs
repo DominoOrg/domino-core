@@ -1,5 +1,3 @@
-#![allow(deprecated)]
-
 use bencher::format_duration;
 
 mod bencher;

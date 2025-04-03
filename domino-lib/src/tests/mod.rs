@@ -2,7 +2,6 @@
 pub mod benches;
 
 mod tests {
-  #![allow(deprecated)]
 
   use domino_lib::{
       classify_puzzle, generate_puzzle, solve_puzzle, validate_puzzle, ComplexityClass,

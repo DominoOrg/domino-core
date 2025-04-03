@@ -1,5 +1,3 @@
-#![allow(deprecated)]
-
 use clap::Parser;
 use domino_lib::{generate_puzzle, solve_puzzle, validate_puzzle, classify_puzzle, Puzzle, Tile};
 use serde_json::Value;
