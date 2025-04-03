@@ -20,50 +20,48 @@ use std::collections::HashSet;
 /// # Returns
 ///
 /// A closure `(bool) -> Vec<Node>` that computes an Eulerian cycle when called.
-pub fn hierholzer<'a>(graph: &'a Graph) -> impl Fn(bool) -> Vec<Node> + 'a {
-    move |random: bool| {
-        let mut circuit: Vec<Node> = Vec::new();
-        let mut visited: HashSet<Arc> = HashSet::new();
-        let mut stack: Vec<Node> = vec![first_node(graph)(random)];
+pub fn hierholzer<'a>(graph: &'a Graph, random: bool) -> Vec<Node> {
+  let mut circuit: Vec<Node> = Vec::new();
+  let mut visited: HashSet<Arc> = HashSet::new();
+  let mut stack: Vec<Node> = vec![first_node(graph)(random)];
 
-        while let Some(current_vertex) = stack.pop() {
-            // Choose the next node using NextNodeBuilder
-            let unvisited_edge_index: Option<usize> = NextNodeBuilder::new(graph)
-                .with_random(random)
-                .with_visited(visited.clone())
-                .with_current_vertex(current_vertex.clone())
-                .build();
+  while let Some(current_vertex) = stack.pop() {
+      // Choose the next node using NextNodeBuilder
+      let unvisited_edge_index: Option<usize> = NextNodeBuilder::new(graph)
+          .with_random(random)
+          .with_visited(visited.clone())
+          .with_current_vertex(current_vertex.clone())
+          .build();
 
-            if let Some(unvisited_index) = unvisited_edge_index {
-                stack.push(current_vertex.clone());
+      if let Some(unvisited_index) = unvisited_edge_index {
+          stack.push(current_vertex.clone());
 
-                // Retrieve the next vertex from the adjacency list
-                let next_vertex = graph
-                    .adjacency
-                    .get(&current_vertex)
-                    .unwrap()
-                    .get(unvisited_index)
-                    .unwrap()
-                    .destination
-                    .clone();
+          // Retrieve the next vertex from the adjacency list
+          let next_vertex = graph
+              .adjacency
+              .get(&current_vertex)
+              .unwrap()
+              .get(unvisited_index)
+              .unwrap()
+              .destination
+              .clone();
 
-                // Mark edges as visited (handling both directions)
-                if current_vertex != next_vertex {
-                    visited.insert(Arc::from((current_vertex.clone(), next_vertex.clone())));
-                    visited.insert(Arc::from((next_vertex.clone(), current_vertex.clone())));
-                } else {
-                    visited.insert(Arc::from((next_vertex.clone(), current_vertex.clone())));
-                }
+          // Mark edges as visited (handling both directions)
+          if current_vertex != next_vertex {
+              visited.insert(Arc::from((current_vertex.clone(), next_vertex.clone())));
+              visited.insert(Arc::from((next_vertex.clone(), current_vertex.clone())));
+          } else {
+              visited.insert(Arc::from((next_vertex.clone(), current_vertex.clone())));
+          }
 
-                stack.push(next_vertex);
-            } else {
-                circuit.push(current_vertex.clone());
-            }
-        }
+          stack.push(next_vertex);
+      } else {
+          circuit.push(current_vertex.clone());
+      }
+  }
 
-        circuit.reverse(); // Reverse to get the correct order
-        circuit
-    }
+  circuit.reverse(); // Reverse to get the correct order
+  circuit
 }
 
 #[cfg(test)]
@@ -78,7 +76,7 @@ mod tests {
     fn test_find_eulerian_cycle() {
         (3..=6).for_each(|n| {
             let graph = Graph::regular(n);
-            let eulerian_cycle = find_eulerian_cycle(&graph)(false);
+            let eulerian_cycle = find_eulerian_cycle(&graph,false);
             let expected_len = if n % 2 == 0 {
                 (n + 1) * (n + 2) / 2
             } else {

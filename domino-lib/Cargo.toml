@@ -1,6 +1,6 @@
 [package]
 name = "domino-lib"
-version = "1.4.4"
+version = "1.4.5"
 description = "Domino library, create sequences and puzzles, solve and validate them in rust"
 repository = "https://github.com/DominoOrg/domino-lib"
 license = "MIT"

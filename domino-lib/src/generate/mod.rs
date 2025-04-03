@@ -24,7 +24,7 @@ use rand::Rng;
 /// A `Puzzle` instance with `Some(Tile)` values for placed tiles and `None` for removed tiles.
 pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
     let graph = Graph::regular(n);
-    let eulerian_cycle = find_eulerian_cycle(&graph)(random);
+    let eulerian_cycle = find_eulerian_cycle(&graph,random);
 
     // Convert Eulerian cycle to a solution of tiles
     let mut solution: Solution = create_solution_from_cycle(&eulerian_cycle);
