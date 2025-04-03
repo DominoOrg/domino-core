@@ -32,9 +32,8 @@ pub fn solve_puzzle(puzzle: &Puzzle) -> Result<Solution, DominoError> {
         .iter()
         .map(|tuple| Tile((*tuple).0 as i32, (*tuple).1 as i32).into())
         .collect();
-    let tileset_digits = (tileset.len() as f32).log10().ceil() as usize + 1;
+    let tileset_digits = (tileset.len() as f32).log10().floor() as usize + 1;
     let sequence_digits = (puzzle.0.len() as f32).log10().floor() as usize + 1;
-    // println!("tilset_digits: {tileset_digits} sequence_digits: {sequence_digits}");
     if let Ok(translator) = solver_result {
         let mut solution = puzzle.clone();
         let variables = translator._get_variables();

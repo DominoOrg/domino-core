@@ -22,11 +22,11 @@ use std::cmp::Ordering;
 /// * `Ordering::Less` if `label1` should appear before `label2`.
 /// * `Ordering::Greater` if `label1` should appear after `label2`.
 /// * `Ordering::Equal` if they are identical.
-pub fn sorting_label(label1: &String, label2: &String) -> Ordering {
+pub fn sorting_label(label1: &String, label2: &String, tileset_digits: usize, sequence_digits: usize) -> Ordering {
     let parse_label = |label: &String| {
         let (tile_index, position) = (
-            label[1..2].parse::<usize>().unwrap(),
-            label[2..3].parse::<usize>().unwrap(),
+            label[1..1+tileset_digits].parse::<usize>().unwrap(),
+            label[1+tileset_digits..1+tileset_digits+sequence_digits].parse::<usize>().unwrap(),
         );
         (tile_index, position)
     };

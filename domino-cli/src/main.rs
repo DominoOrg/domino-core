@@ -15,8 +15,8 @@ enum Commands {
         #[arg(short, long, default_value_t = 6)]
         n: u32,
         #[arg(short, long)]
-        minimum_removals: u32,
-        #[arg(short, long, default_value_t = true)]
+        c: u32,
+        #[arg(short, long, action)]
         random: bool
     },
     ValidatePuzzle {
@@ -39,9 +39,10 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::GeneratePuzzle { n, minimum_removals, random} => {
-            let puzzle = generate_puzzle(*n as usize, *minimum_removals as usize, *random);
-            println!("Puzzle: {:?}", puzzle);
+        Commands::GeneratePuzzle { n, c, random} => {
+
+            let puzzle = generate_puzzle(*n as usize, *c as usize, *random);
+            println!("Puzzle: {}", deserialize_puzzle(puzzle));
         },
         #[allow(unused_variables)]
         Commands::ValidatePuzzle { puzzle, solution } => {
@@ -53,7 +54,7 @@ fn main() {
         Commands::SolvePuzzle { puzzle } => {
             let puzzle = serialize_puzzle(puzzle.to_string());
             let solution = solve_puzzle(&puzzle);
-            println!("Solution: {:?}", solution);
+            println!("Solution: {:?}", solution.map(deserialize_solution));
         },
         Commands::ClassifyPuzzle { puzzle } => {
             let puzzle = serialize_puzzle(puzzle.to_string());
@@ -87,4 +88,28 @@ fn serialize_solution(solution: String) -> Vec<Tile> {
     tiles.push(Tile(left, right));
   }
   tiles
+}
+
+fn deserialize_puzzle(puzzle: Puzzle) -> String {
+  let mut result: Vec<Value> = vec![];
+  for tile in puzzle.0 {
+    if tile.is_none() {
+      result.push(Value::Null);
+    } else {
+      let left = tile.unwrap().0;
+      let right = tile.unwrap().1;
+      result.push(Value::Array(vec![Value::Number(left.into()), Value::Number(right.into())]));
+    }
+  }
+  serde_json::to_string(&result).unwrap()
+}
+
+fn deserialize_solution(solution: Vec<Tile>) -> String {
+  let mut result: Vec<Value> = vec![];
+  for tile in solution {
+    let left = tile.0;
+    let right = tile.1;
+    result.push(Value::Array(vec![Value::Number(left.into()), Value::Number(right.into())]));
+    }
+  serde_json::to_string(&result).unwrap()
 }

@@ -12,7 +12,7 @@ use std::fmt::Display;
 ///
 /// This struct enforces that the class value is within a valid range and provides
 /// conversion methods for display and numerical operations.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct ComplexityClass(pub usize);
 
 impl ComplexityClass {

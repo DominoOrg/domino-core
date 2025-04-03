@@ -4,9 +4,6 @@
 //! using mathematical optimization principles.
 
 use bounds::partial_tiles_bound;
-use helpers::sorting_label;
-use itertools::Itertools;
-
 use crate::utils::{DominoError, Puzzle};
 
 use super::model::bounds::{
@@ -78,19 +75,12 @@ fn bounds(puzzle: &Puzzle, vars: &Variables) -> Vec<String> {
 pub fn compute_model(puzzle: &Puzzle) -> Result<String, DominoError> {
     // Generate decision variables for the puzzle.
     let prob_vars = variables(puzzle)?;
-
+    // println!("Variables: {:#?}", prob_vars);
     // Compute the objective function to minimize missing tiles.
     let prob_obj = "y".to_string();
 
     // Generate constraints (bounds) for valid tile placement.
     let prob_bounds = bounds(puzzle, &prob_vars);
-
-    // Sort variable labels for consistent model formatting.
-    let ordered_vars: Vec<&String> = prob_vars
-        .by_label
-        .keys()
-        .sorted_by(|label1, label2| sorting_label(label1, label2))
-        .collect();
 
     // Construct the optimization model in LP format.
     let mut model = "Minimize\n".to_string();
@@ -106,8 +96,8 @@ pub fn compute_model(puzzle: &Puzzle) -> Result<String, DominoError> {
 
     // Define binary decision variables for tile placement.
     model.push_str("Binary\n");
-    for variable in ordered_vars {
-        model.push_str(format!(" {}\n", variable).as_str());
+    for variable in prob_vars.vars {
+        model.push_str(format!(" {}\n", variable.label).as_str());
     }
 
     // Finalize the model.

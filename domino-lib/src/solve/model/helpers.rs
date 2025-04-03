@@ -4,44 +4,6 @@
 use crate::stringify_variables;
 
 use super::variables::Variable;
-use std::cmp::Ordering;
-
-/// Compares two variable labels and determines their ordering.
-///
-/// The labels follow a specific format where:
-/// - The second character represents the tile index.
-/// - The third character represents the position.
-///
-/// This function parses those values and sorts labels first by tile index, then by position.
-///
-/// # Arguments
-///
-/// * `label1` - A reference to the first label as a `String`.
-/// * `label2` - A reference to the second label as a `String`.
-///
-/// # Returns
-///
-/// * `Ordering::Less` if `label1` should appear before `label2`.
-/// * `Ordering::Greater` if `label1` should appear after `label2`.
-/// * `Ordering::Equal` if they are identical.
-pub fn sorting_label(label1: &String, label2: &String) -> Ordering {
-    let parse_label = |label: &String| {
-        let (tile_index, position) = (
-            label[1..2].parse::<usize>().unwrap(),
-            label[2..3].parse::<usize>().unwrap(),
-        );
-        (tile_index, position)
-    };
-
-    let (l1tileindex, l1position) = parse_label(label1);
-    let (l2tileindex, l2position) = parse_label(label2);
-
-    // Compare tile index first, then position
-    match l1tileindex.cmp(&l2tileindex) {
-        Ordering::Equal => l1position.cmp(&l2position),
-        other => other,
-    }
-}
 
 /// Collects variable labels from a slice of `Variable` structs.
 ///

@@ -4,9 +4,6 @@
 //! using mathematical optimization principles.
 
 use bounds::partial_tiles_bound;
-use helpers::sorting_label;
-use itertools::Itertools;
-
 use crate::{stringify_variables, Solution};
 use crate::utils::{DominoError, Puzzle};
 
@@ -128,13 +125,6 @@ pub fn compute_model(puzzle: &Puzzle, solution: &Solution) -> Result<String, Dom
     // Generate constraints (bounds) for valid tile placement.
     let prob_bounds = bounds(puzzle, &prob_vars);
 
-    // Sort variable labels for consistent model formatting.
-    let ordered_vars: Vec<&String> = prob_vars
-        .by_label
-        .keys()
-        .sorted_by(|label1, label2| sorting_label(label1, label2))
-        .collect();
-
     // Construct the optimization model in LP format.
     let mut model = "Minimize\n".to_string();
     model.push_str(format!(" obj: {}\n", prob_obj).as_str());
@@ -149,8 +139,8 @@ pub fn compute_model(puzzle: &Puzzle, solution: &Solution) -> Result<String, Dom
 
     // Define binary decision variables for tile placement.
     model.push_str("Binary\n");
-    for variable in ordered_vars {
-        model.push_str(format!(" {}\n", variable).as_str());
+    for variable in prob_vars.vars {
+        model.push_str(format!(" {}\n", variable.label).as_str());
     }
 
     // Finalize the model.

@@ -3,6 +3,8 @@
 //! It includes structures and functions to manage variables, generate tile combinations,
 //! and construct labeled variables for a given puzzle.
 
+use itertools::Itertools;
+
 use crate::utils::{get_n, DominoError, Puzzle};
 use std::collections::HashMap;
 
@@ -76,6 +78,10 @@ impl Variables {
         insert_or_update(&mut self.by_tile, variable.tile, variable.clone());
         insert_or_update(&mut self.by_position, variable.position, variable);
     }
+
+    pub fn sort_by_label(&mut self) {
+      self.vars = self.vars.clone().into_iter().sorted_by_key(|v| v.label.clone()).collect();
+    }
 }
 
 /// Generates variables for a given puzzle by determining valid tile placements.
@@ -101,7 +107,9 @@ pub fn variables(puzzle: &Puzzle) -> Result<Variables, DominoError> {
         .into_iter()
         .collect();
 
-    Ok(Variables::new(mapped_variables))
+    let mut vars = Variables::new(mapped_variables);
+    vars.sort_by_label();
+    Ok(vars)
 }
 
 /// Generates a set of tiles based on a given value `N`.
@@ -148,9 +156,9 @@ fn generate_combinations(tileset: Vec<(usize, (usize, usize))>, n: usize) -> Vec
         (n + 1).pow(2) / 2
     };
 
-    let tileset_length = sequence_length * 2;
-    let tileset_digits = ((tileset_length.saturating_sub(1)) as f32).log10().floor() as usize + 1;
-    let sequence_digits = ((sequence_length.saturating_sub(1)) as f32).log10().floor() as usize + 1;
+    let tileset_length = tileset.len();
+    let tileset_digits = (tileset_length as f32).log10().floor() as usize + 1;
+    let sequence_digits = (sequence_length as f32).log10().floor() as usize + 1;
 
     let positions: Vec<usize> = (0..sequence_length).collect::<Vec<usize>>();
 

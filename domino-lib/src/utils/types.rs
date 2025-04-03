@@ -1,3 +1,6 @@
+use std::{collections::vec_deque::{Iter}, ops::{Index, IndexMut}};
+use std::vec::IntoIter;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Hash, Eq)]
@@ -67,6 +70,36 @@ pub type Solution = Vec<Tile>;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Puzzle(pub Vec<Option<Tile>>);
+
+impl Puzzle {
+
+  pub fn len(&self) -> usize {
+    self.0.len()
+  }
+
+  pub fn into_iter(self) -> std::vec::IntoIter<Option<Tile>> {
+    self.0.into_iter()
+  }
+}
+
+impl Index<usize> for Puzzle {
+    type Output = Option<Tile>;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl IndexMut<usize> for Puzzle {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
+    }
+}
+
+impl std::fmt::Display for Puzzle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
 
 impl Serialize for Puzzle {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
