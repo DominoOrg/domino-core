@@ -105,8 +105,10 @@ fn update_complexity(actual_complexity: &mut Option<ComplexityClass>, expected_c
   let result = classify_puzzle(&puzzle.clone().into());
   *actual_complexity = result.ok();
   *is_not_complex_enough = actual_complexity != expected_complexity;
-  *is_too_complex = actual_complexity.unwrap() > expected_complexity.unwrap();
-
+  *is_too_complex = match (actual_complexity, expected_complexity) {
+    (Some(actual), Some(expected)) => actual > expected,
+    _ => false
+  };
 }
 
 fn reinsert_tile(puzzle: &mut Vec<Option<Tile>>, history: &mut Vec<(Option<Tile>, usize)>) {
