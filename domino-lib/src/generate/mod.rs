@@ -31,6 +31,9 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
 
     // Convert solution into a puzzle with all tiles initially placed
     let mut puzzle= solution.clone().into_iter().map(Some).collect::<Vec<Option<Tile>>>();
+    let mut rng = rand::thread_rng();
+    let index = rng.gen_range(0..puzzle.len());
+    puzzle[index] = None;
 
     // Complexity checks
     let mut expected_complexity = ComplexityClass::new(c).ok();
@@ -49,11 +52,11 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
     let mut removal_history: Vec<(Option<Tile>, usize)> = Vec::new();
 
     // Remove tiles
-    println!("is_not_valid: {:?}, is_not_complex_enough: {:?}", is_not_valid, is_not_complex_enough);
+    // println!("is_not_valid: {:?}, is_not_complex_enough: {:?}", is_not_valid, is_not_complex_enough);
     while is_not_valid || is_not_complex_enough {
 
       while is_too_complex {
-        println!("is_too_complex");
+        // println!("is_too_complex");
         reinsert_tile(&mut puzzle, &mut removal_history);
         update_complexity(&mut actual_complexity, &mut expected_complexity, &puzzle, &mut is_not_complex_enough, &mut is_too_complex);
       }
@@ -64,14 +67,14 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
       // Remove a tile at a random position
       (puzzle, removed_tile, removed_position) = remove_non_empty_tile(puzzle, random);
       removal_history.push((removed_tile, removed_position.unwrap()));
-      println!("puzzle: {:?}, removed_tile: {:?}, removed_position: {:?}", puzzle, removed_tile, removed_position);
+      // println!("puzzle: {:?}, removed_tile: {:?}, removed_position: {:?}", puzzle, removed_tile, removed_position);
 
       // Update complexity checks
       update_complexity(&mut actual_complexity, &mut expected_complexity, &puzzle, &mut is_not_complex_enough, &mut is_too_complex);
 
       // Update validity checks
       let is_not_valid = validate_puzzle(&puzzle.clone().into(), &solution).is_err();
-      println!("is_not_valid: {:?}, is_not_complex_enough: {:?}", is_not_valid, is_not_complex_enough);
+      // println!("is_not_valid: {:?}, is_not_complex_enough: {:?}", is_not_valid, is_not_complex_enough);
 
       // The puzzle becomes invalid rollback
       if is_not_valid {
@@ -80,14 +83,20 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
       }
 
       // If the time spent trying to reach the desired complexity is greater than the timeout then restart with another initial solution
-      if now.elapsed().as_millis() > timeout.as_millis() {
+      if now.elapsed().as_millis() > timeout.as_millis() || actual_complexity.is_none(){
         println!("timeout");
         solution = create_solution_from_cycle(&eulerian_cycle);
         puzzle = solution.clone().into_iter().map(Some).collect::<Vec<Option<Tile>>>().into();
         now = Instant::now();
       }
-      println!("============= Iteration completed ==============");
+      // println!("============= Iteration completed ==============");
 
+    }
+
+    for i in 0..puzzle.len() {
+      if puzzle[i].is_none() && puzzle[(puzzle.len() + i - 1) % puzzle.len()].is_some() && puzzle[(i + 1) % puzzle.len()].is_some() {
+        puzzle[i] = Some(solution[i]);
+      }
     }
     puzzle.into()
 }
@@ -101,10 +110,10 @@ fn update_complexity(actual_complexity: &mut Option<ComplexityClass>, expected_c
 }
 
 fn reinsert_tile(puzzle: &mut Vec<Option<Tile>>, history: &mut Vec<(Option<Tile>, usize)>) {
-  println!("Puzzle is not valid reinserting tile");
+  // println!("Puzzle is not valid reinserting tile");
   let (removed_tile, removed_position) = history.pop().unwrap();
   puzzle[removed_position] = removed_tile;
-  println!("puzzle: {:?}, removed_tile: {:?}, removed_position: {:?}", puzzle, removed_tile, removed_position);
+  // println!("puzzle: {:?}, removed_tile: {:?}, removed_position: {:?}", puzzle, removed_tile, removed_position);
 
 }
 
@@ -115,8 +124,14 @@ fn remove_non_empty_tile(mut puzzle: Vec<Option<Tile>>, random: bool) -> (Vec<Op
   } else {
     0
   };
-  while puzzle[index].is_none() {
+  for _ in 0..10 {
+    if puzzle[index].is_some() {
       index = rng.gen_range(0..puzzle.len());
+    }
+  }
+
+  while puzzle[index].is_none() {
+      index = (index + 1) % puzzle.len();
   }
   let removed_tile = puzzle[index].clone();
   puzzle[index] = None;
