@@ -25,15 +25,9 @@ use rand::Rng;
 pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
     let graph = Graph::regular(n);
     let eulerian_cycle = find_eulerian_cycle(&graph,random);
-
-    // Convert Eulerian cycle to a solution of tiles
     let mut solution: Solution = create_solution_from_cycle(&eulerian_cycle);
-
-    // Convert solution into a puzzle with all tiles initially placed
     let mut puzzle= solution.clone().into_iter().map(Some).collect::<Vec<Option<Tile>>>();
     let mut rng = rand::thread_rng();
-    let index = rng.gen_range(0..puzzle.len());
-    puzzle[index] = None;
 
     // Complexity checks
     let mut expected_complexity = ComplexityClass::new(c).ok();
@@ -43,16 +37,18 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
 
     // Timeout
     let mut now = Instant::now();
-    let timeout = Duration::from_secs(19);
+    let timeout = Duration::from_millis(1500);
 
     // Validity checks
     let is_not_valid = validate_puzzle(&puzzle.clone().into(), &solution).is_err();
 
     // Removal history
-    let mut removal_history: Vec<(Option<Tile>, usize)> = Vec::new();
+    let mut index = rng.gen_range(0..puzzle.len());
+    let mut removal_history: Vec<(Option<Tile>, usize)> = vec![(puzzle[index].clone(), index)];
+    puzzle[index] = None;
+
 
     // Remove tiles
-    // println!("is_not_valid: {:?}, is_not_complex_enough: {:?}", is_not_valid, is_not_complex_enough);
     while is_not_valid || is_not_complex_enough {
 
       while is_too_complex {
@@ -67,14 +63,12 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
       // Remove a tile at a random position
       (puzzle, removed_tile, removed_position) = remove_non_empty_tile(puzzle, random);
       removal_history.push((removed_tile, removed_position.unwrap()));
-      // println!("puzzle: {:?}, removed_tile: {:?}, removed_position: {:?}", puzzle, removed_tile, removed_position);
 
       // Update complexity checks
       update_complexity(&mut actual_complexity, &mut expected_complexity, &puzzle, &mut is_not_complex_enough, &mut is_too_complex);
 
       // Update validity checks
       let is_not_valid = validate_puzzle(&puzzle.clone().into(), &solution).is_err();
-      // println!("is_not_valid: {:?}, is_not_complex_enough: {:?}", is_not_valid, is_not_complex_enough);
 
       // The puzzle becomes invalid rollback
       if is_not_valid {
@@ -84,20 +78,18 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
 
       // If the time spent trying to reach the desired complexity is greater than the timeout then restart with another initial solution
       if now.elapsed().as_millis() > timeout.as_millis() || actual_complexity.is_none(){
-        println!("timeout");
+        // println!("timeout, puzzle is: {puzzle:?}");
         solution = create_solution_from_cycle(&eulerian_cycle);
         puzzle = solution.clone().into_iter().map(Some).collect::<Vec<Option<Tile>>>().into();
+        index = rng.gen_range(0..puzzle.len());
+        removal_history = vec![(puzzle[index].clone(), index)];
+        puzzle[index] = None;
+        update_complexity(&mut actual_complexity, &mut expected_complexity, &puzzle, &mut is_not_complex_enough, &mut is_too_complex);
         now = Instant::now();
       }
-      // println!("============= Iteration completed ==============");
 
     }
 
-    for i in 0..puzzle.len() {
-      if puzzle[i].is_none() && puzzle[(puzzle.len() + i - 1) % puzzle.len()].is_some() && puzzle[(i + 1) % puzzle.len()].is_some() {
-        puzzle[i] = Some(solution[i]);
-      }
-    }
     puzzle.into()
 }
 
@@ -105,10 +97,8 @@ fn update_complexity(actual_complexity: &mut Option<ComplexityClass>, expected_c
   let result = classify_puzzle(&puzzle.clone().into());
   *actual_complexity = result.ok();
   *is_not_complex_enough = actual_complexity != expected_complexity;
-  *is_too_complex = match (actual_complexity, expected_complexity) {
-    (Some(actual), Some(expected)) => actual > expected,
-    _ => false
-  };
+  *is_too_complex = actual_complexity.is_some() && actual_complexity.unwrap() > expected_complexity.unwrap();
+
 }
 
 fn reinsert_tile(puzzle: &mut Vec<Option<Tile>>, history: &mut Vec<(Option<Tile>, usize)>) {

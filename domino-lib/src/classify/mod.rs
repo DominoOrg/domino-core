@@ -48,11 +48,6 @@ pub fn classify_puzzle(puzzle: &Puzzle) -> Result<ComplexityClass, DominoError> 
     // Detect holes within the puzzle. Each hole is represented as a tuple (start_index, end_index).
     let holes: Vec<(usize, usize)> = detect_holes(puzzle);
 
-    // Return an error if no holes are detected.
-    if holes.len() == 0 {
-        return Err(DominoError::InvalidLength);
-    }
-
     // Compute and return the complexity ComplexityClass based on the detected holes and derived metrics.
     let class = compute_complexity(holes, max_hole, l);
     class
@@ -149,20 +144,6 @@ pub fn tiles_to_remove_range(class: ComplexityClass, n: usize) -> (usize, usize)
 ///
 /// A tuple `(min_x, max_x)` representing the range of decimal values that
 /// could have resulted in the given class, or `None` if the class is out of bounds.
-///
-/// # Examples
-///
-/// ```
-/// const NUMBER_OF_CLASSES: usize = 3;
-///
-/// fn compute_threshold(class: usize) -> f32 {
-///     class as f32 / NUMBER_OF_CLASSES as f32
-/// }
-///
-/// let (min_x, max_x) = inverse_class_mapping(2).unwrap();
-/// assert_eq!(min_x, compute_threshold(1));
-/// assert_eq!(max_x, compute_threshold(2));
-/// ```
 #[allow(dead_code)]
 fn inverse_class_mapping(class: ComplexityClass) -> Option<(f32, f32)> {
     if class < 1 || class > NUMBER_OF_CLASSES {
@@ -201,6 +182,10 @@ fn compute_complexity(
     max_hole: usize,
     len: usize,
 ) -> Result<ComplexityClass, DominoError> {
+    if holes.is_empty() {
+      return ComplexityClass::new(0)
+    }
+
     // Calculate the absolute complexity from the detected holes
     // The returned complexity is relative to the hardest case possible (1 hole with the max size).
     // It may exceed 1.0 if multiple holes are present.
@@ -241,12 +226,14 @@ fn compute_absolute_complexity(holes: Vec<(usize, usize)>, max_hole: usize, len:
         .clone()
         .into_iter()
         .map(|hole| {
-            let hole_length: usize = if hole.1 > hole.0 {
+            let mut hole_length: usize = if hole.1 > hole.0 {
                 hole.1.saturating_sub(hole.0)
             } else {
                 // println!("({len} - {}) + {}", hole.0, hole.1);
                 (len - hole.0) + hole.1
             };
+            // Avoids single tile holes
+            hole_length = hole_length.saturating_sub(1);
             // println!("hole: {hole:?}, hole_length: {hole_length}");
             // println!("number_of_holes_factor: {number_of_holes_factor} hole_lenght: {hole_length} length_factor: {}", (hole_length as f32/ max_hole as f32).powf(2.0));
             (hole_length as f32 / max_hole as f32).powf(2.0)
@@ -373,6 +360,7 @@ mod tests {
         }
     }
     mod classify_puzzle_tests {
+
         use super::*;
 
         /// Tests classification of an empty puzzle.
@@ -392,7 +380,7 @@ mod tests {
         #[test]
         fn test_classify_puzzle_no_holes() {
             let puzzle = mock_puzzle(8, vec![]); // No holes
-            assert_eq!(classify_puzzle(&puzzle), Err(DominoError::InvalidLength));
+            assert_eq!(classify_puzzle(&puzzle), Err(DominoError::InvalidClass("The complexity class provided is not valid: 0.\nIt should be in the range [1, 3]".to_string())));
         }
     }
 
@@ -470,11 +458,11 @@ mod tests {
             let total_size = (n + 1) * (n + 1) / 2;
             let max_hole = (n + 1) * 2 - 1;
 
-            for hole_size in 1..=max_hole as usize {
+            for hole_size in 2..=max_hole as usize {
                 let puzzle = create_puzzle_with_hole(n, hole_size, 0);
                 let holes = detect_holes(&puzzle);
                 let complexity = compute_complexity(holes, max_hole, total_size);
-                let expected_abs = (hole_size as f32 / max_hole as f32).powf(2.0);
+                let expected_abs = (hole_size.saturating_sub(1) as f32 / max_hole as f32).powf(2.0);
                 let expected_rel = expected_abs.clamp(0.0, 1.0);
                 let expected_class = find_threshold_index(expected_rel);
 
@@ -514,7 +502,7 @@ mod tests {
             let n = 3;
             let total_size = (n + 1) * (n + 1) / 2;
             let max_hole = (n + 1) * 2 - 1;
-            let puzzle = mock_puzzle(total_size, vec![1, 3, 5]);
+            let puzzle = mock_puzzle(total_size, vec![2, 3, 5]);
 
             let holes = detect_holes(&puzzle);
             let complexity = compute_complexity(holes, max_hole, total_size);

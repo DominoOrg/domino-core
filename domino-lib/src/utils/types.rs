@@ -106,15 +106,16 @@ impl Serialize for Puzzle {
     where
         S: serde::Serializer,
     {
-        let mut s = "".to_string();
+        let mut s = vec![];
         self.0.iter().for_each(|t| {
           if let Some(t) = t {
-            s.push_str(&t.to_string());
+            s.push(t.to_string());
           } else {
-            s.push_str("null");
+            s.push("null".to_string());
           }
          });
-        serializer.serialize_str(&s)
+         let result = "[".to_string() + &s.join(",") + "]";
+        serializer.serialize_str(&result)
     }
 }
 

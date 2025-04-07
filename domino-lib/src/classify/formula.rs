@@ -15,13 +15,6 @@ const NUMBER_OF_CLASSES: usize = 3; // Default value set to 3
 /// # Returns
 ///
 /// The `n`-th number in the translated Fibonacci sequence.
-///
-/// # Examples
-///
-/// ```
-/// let fib = translated_fibonacci(4);
-/// assert_eq!(fib, 5);
-/// ```
 fn translated_fibonacci(n: usize) -> usize {
     if n == 1 {
         return 1;
@@ -50,13 +43,6 @@ fn translated_fibonacci(n: usize) -> usize {
 /// # Returns
 ///
 /// The sum of the first `NUMBER_OF_CLASSES` Fibonacci-translated numbers.
-///
-/// # Examples
-///
-/// ```
-/// let denom = compute_denominator();
-/// assert_eq!(denom, 6); // For NUMBER_OF_CLASSES = 3: (1 + 2 + 3)
-/// ```
 fn compute_denominator() -> usize {
     (1..=NUMBER_OF_CLASSES)
         .map(|i| translated_fibonacci(i))
@@ -81,14 +67,6 @@ fn compute_denominator() -> usize {
 /// A tuple containing:
 /// - `numerator` - The `k`-th translated Fibonacci number.
 /// - `denominator` - The total sum of the first `NUMBER_OF_CLASSES` Fibonacci-translated numbers.
-///
-/// # Examples
-///
-/// ```
-/// let (num, denom) = compute_intermediate_value(2, 6);
-/// assert_eq!(num, 2);
-/// assert_eq!(denom, 6);
-/// ```
 fn compute_intermediate_value(k: usize, denominator: usize) -> (usize, usize) {
     let numerator = translated_fibonacci(k);
     (numerator, denominator)
@@ -109,13 +87,6 @@ fn compute_intermediate_value(k: usize, denominator: usize) -> (usize, usize) {
 /// # Returns
 ///
 /// The computed threshold as an `f32`, representing a fraction of the total.
-///
-/// # Examples
-///
-/// ```
-/// let threshold = compute_threshold(3);
-/// assert_eq!(threshold, 6.0 / 6.0);
-/// ```
 pub(super) fn compute_threshold(k: usize) -> f32 {
     let denominator = compute_denominator() as f32;
     let mut num_sum = 0;
@@ -142,14 +113,11 @@ pub(super) fn compute_threshold(k: usize) -> f32 {
 /// # Returns
 ///
 /// The first index `k` where the threshold surpasses `value`.
-///
-/// # Examples
-///
-/// ```
-/// let index = find_threshold_index(0.5);
-/// assert_eq!(index, 3);
-/// ```
 pub(super) fn find_threshold_index(value: f32) -> usize {
+    if value == 0.0 {
+      return 0;
+    }
+
     let mut k = 1;
     while k <= NUMBER_OF_CLASSES {
         let threshold = compute_threshold(k);
@@ -216,7 +184,7 @@ mod tests {
     #[test]
     fn test_formula_find_threshold_index() {
         let test_values = [0.0, 0.1, 0.3, 0.6, 1.0];
-        let expected_indices = [1, 1, 2, 3, 3];
+        let expected_indices = [0, 1, 2, 3, 3];
 
         for (value, expected) in test_values.iter().zip(expected_indices.iter()) {
             assert_eq!(find_threshold_index(*value), *expected);

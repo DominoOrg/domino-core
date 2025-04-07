@@ -194,7 +194,7 @@ dependencies = [
 
 [[package]]
 name = "domino-lib"
-version = "1.4.6"
+version = "1.4.7"
 dependencies = [
  "anyhow",
  "good_lp",
