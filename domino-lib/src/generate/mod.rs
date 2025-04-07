@@ -22,9 +22,9 @@ use rand::Rng;
 /// # Returns
 ///
 /// A `Puzzle` instance with `Some(Tile)` values for placed tiles and `None` for removed tiles.
-pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
+pub fn generate_puzzle(n: usize, c: usize) -> Puzzle {
     let graph = Graph::regular(n);
-    let eulerian_cycle = find_eulerian_cycle(&graph,random);
+    let eulerian_cycle = find_eulerian_cycle(&graph,true);
     let mut solution: Solution = create_solution_from_cycle(&eulerian_cycle);
     let mut puzzle= solution.clone().into_iter().map(Some).collect::<Vec<Option<Tile>>>();
     let mut rng = rand::thread_rng();
@@ -37,7 +37,7 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
 
     // Timeout
     let mut now = Instant::now();
-    let timeout = Duration::from_millis(1500);
+    let timeout = Duration::from_millis(2000);
 
     // Validity checks
     let is_not_valid = validate_puzzle(&puzzle.clone().into(), &solution).is_err();
@@ -60,8 +60,8 @@ pub fn generate_puzzle(n: usize, c: usize, random: bool) -> Puzzle {
       let removed_tile: Option<Tile>;
       let removed_position: Option<usize>;
 
-      // Remove a tile at a random position
-      (puzzle, removed_tile, removed_position) = remove_non_empty_tile(puzzle, random);
+      // Remove a tile at a true position
+      (puzzle, removed_tile, removed_position) = remove_non_empty_tile(puzzle);
       removal_history.push((removed_tile, removed_position.unwrap()));
 
       // Update complexity checks
@@ -109,13 +109,10 @@ fn reinsert_tile(puzzle: &mut Vec<Option<Tile>>, history: &mut Vec<(Option<Tile>
 
 }
 
-fn remove_non_empty_tile(mut puzzle: Vec<Option<Tile>>, random: bool) -> (Vec<Option<Tile>>, Option<Tile>, Option<usize>) {
+fn remove_non_empty_tile(mut puzzle: Vec<Option<Tile>>) -> (Vec<Option<Tile>>, Option<Tile>, Option<usize>) {
   let mut rng = rand::thread_rng();
-  let mut index = if random {
-    rng.gen_range(0..puzzle.len())
-  } else {
-    0
-  };
+  let mut index = rng.gen_range(0..puzzle.len());
+
   for _ in 0..10 {
     if puzzle[index].is_some() {
       index = rng.gen_range(0..puzzle.len());

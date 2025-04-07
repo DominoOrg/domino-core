@@ -16,7 +16,7 @@ mod tests {
   fn test_generate() {
       test_suite().into_iter().for_each(|n| {
         (1..=3).for_each(|c| {
-          let puzzle = generate_puzzle(n, c, false);
+          let puzzle = generate_puzzle(n, c);
           if n % 2 == 0 {
               assert_eq!(puzzle.0.len(), (n + 1) * (n + 2) / 2);
           } else {
@@ -30,7 +30,7 @@ mod tests {
   fn test_solve() {
       test_suite().into_iter().for_each(|n| {
         (1..=3).for_each(|c| {
-          let puzzle = generate_puzzle(n, c, false);
+          let puzzle = generate_puzzle(n, c);
           println!("Puzzle: {puzzle:?}");
           let solution = solve_puzzle(&puzzle).unwrap();
           println!("Solution: {solution:?}");
@@ -44,7 +44,7 @@ mod tests {
       test_suite().into_iter().for_each(|n| {
         (1..=3).for_each(|c| {
           // For each length a puzzle with a single tile missing is always valid
-          let puzzle = generate_puzzle(n, c, false);
+          let puzzle = generate_puzzle(n, c);
           println!("Puzzle: {}",serde_json::to_string(&puzzle).unwrap());
           let solution = solve_puzzle(&puzzle).unwrap();
           let result = validate_puzzle(&puzzle, &solution);
@@ -60,7 +60,7 @@ mod tests {
               .into_iter()
               .map(|c| ComplexityClass::new(c).unwrap())
               .for_each(|expected_complexity| {
-                  let puzzle = generate_puzzle(n, expected_complexity.0, false);
+                  let puzzle = generate_puzzle(n, expected_complexity.0);
                   println!("Puzzle: {puzzle:?}");
                   let computed_complexity =
                       classify_puzzle(&puzzle).expect("Failed to classify puzzle: {puzzle:?}");
@@ -76,7 +76,7 @@ mod tests {
               .into_iter()
               .map(|c| ComplexityClass::new(c).unwrap())
               .for_each(|expected_complexity| {
-                  let puzzle = generate_puzzle(n, expected_complexity.0, false);
+                  let puzzle = generate_puzzle(n, expected_complexity.0);
                   let solution = solve_puzzle(&puzzle).unwrap();
                   let _ = validate_puzzle(&puzzle, &solution)
                       .map(|_solution| {
